@@ -2,6 +2,8 @@ package co.com.pragma.api.config;
 
 import co.com.pragma.api.Handler;
 import co.com.pragma.api.RouterRest;
+import co.com.pragma.config.UseCasesConfig;
+import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -11,7 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @ContextConfiguration(classes = {RouterRest.class, Handler.class})
 @WebFluxTest
-@Import({CorsConfig.class, SecurityHeadersConfig.class})
+@Import({CorsConfig.class, SecurityHeadersConfig.class, UseCasesConfig.class})
 class ConfigTest {
 
     @Autowired
