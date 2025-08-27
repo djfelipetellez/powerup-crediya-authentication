@@ -2,9 +2,6 @@ package co.com.pragma.model.usuario;
 
 import co.com.pragma.model.rol.Rol;
 import lombok.*;
-// Remove validation imports
-// import jakarta.validation.constraints.NotBlank;
-
 
 @Getter
 @Setter

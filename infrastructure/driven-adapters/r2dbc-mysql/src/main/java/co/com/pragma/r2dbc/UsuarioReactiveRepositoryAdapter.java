@@ -17,24 +17,18 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         UsuarioReactiveRepository
         > implements UsuarioRepository {
 
-    private final UsuarioReactiveRepository repository;
+    private final UsuarioReactiveRepository usuarioRepository;
     private final RolReactiveRepository rolRepository;
 
     public UsuarioReactiveRepositoryAdapter(UsuarioReactiveRepository repository, RolReactiveRepository rolRepository
             , ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, Usuario.class));
-        this.repository = repository;
+        this.usuarioRepository = repository;
         this.rolRepository = rolRepository;
     }
 
     @Override
     public Mono<Usuario> save(Usuario usuario) {
-        // Debug: Verificar qué está llegando al repository
-        System.out.println("=== DEBUG REPOSITORY ===");
-        System.out.println("Usuario: " + (usuario != null ? usuario.getNombre() : "null"));
-        System.out.println("Rol: " + (usuario != null && usuario.getRol() != null ? usuario.getRol() : "null"));
-        System.out.println("ID Rol: " + (usuario != null && usuario.getRol() != null ? usuario.getRol().getIdRol() : "null"));
-        System.out.println("========================");
 
         // Validar que el usuario tenga un rol asignado
         if (usuario.getRol() == null || usuario.getRol().getIdRol() == null) {
@@ -42,7 +36,6 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                     (usuario.getRol() != null ? usuario.getRol() : "null")));
         }
 
-        // Crear la entidad para guardar (tu UseCase ya validó que el rol existe)
         UsuarioEntity entity = UsuarioEntity.builder()
                 .idUsuario(usuario.getIdUsuario()) // null si es nuevo
                 .nombre(usuario.getNombre())
@@ -51,11 +44,10 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                 .documentoIdentidad(usuario.getDocumentoIdentidad())
                 .telefono(usuario.getTelefono())
                 .salarioBase(usuario.getSalarioBase())
-                .idRol(usuario.getRol().getIdRol()) // Ya validado en UseCase
+                .idRol(usuario.getRol().getIdRol())
                 .build();
 
-        // Guardar y retornar el usuario manteniendo el rol que ya viene completo del UseCase
-        return repository.save(entity)
+        return usuarioRepository.save(entity)
                 .map(savedEntity -> Usuario.builder()
                         .idUsuario(savedEntity.getIdUsuario())
                         .nombre(savedEntity.getNombre())
@@ -64,14 +56,14 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                         .documentoIdentidad(savedEntity.getDocumentoIdentidad())
                         .telefono(savedEntity.getTelefono())
                         .salarioBase(savedEntity.getSalarioBase())
-                        .rol(usuario.getRol()) // Mantener el rol completo que ya viene del UseCase
+                        .rol(usuario.getRol())
                         .build()
                 );
     }
 
     @Override
     public Mono<Usuario> findByEmail(String email) {
-        return repository.findByEmail(email)
+        return usuarioRepository.findByEmail(email)
                 .flatMap(entity -> {
                     if (entity.getIdRol() != null) {
                         return rolRepository.findById(entity.getIdRol())
@@ -91,7 +83,6 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                                         .build()
                                 );
                     } else {
-                        // Esto no debería pasar según tu lógica de negocio, pero por seguridad
                         return Mono.error(new IllegalStateException("Usuario encontrado sin rol asignado"));
                     }
                 });

@@ -4,7 +4,6 @@ import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.model.usuario.Usuario;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface UsuarioMapper {
