@@ -7,11 +7,13 @@ import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
@@ -23,98 +25,102 @@ class UsuarioUseCaseTest {
     @Mock
     private RolRepository rolRepository;
 
+    @InjectMocks
     private UsuarioUseCase usuarioUseCase;
+
+    private Usuario usuario;
+    private Rol rol;
 
     @BeforeEach
     void setUp() {
-        usuarioUseCase = new UsuarioUseCase(usuarioRepository, rolRepository);
+        usuario = Usuario.builder()
+                .idUsuario(1)
+                .nombre("Test")
+                .apellido("User")
+                .email("test@example.com")
+                .documentoIdentidad("12345")
+                .salarioBase(5000000.0)
+                .build();
+
+        rol = Rol.builder()
+                .idRol(1)
+                .nombre("ADMIN")
+                .descripcion("Administrador")
+                .build();
     }
 
     @Test
     void registrarUsuarioExitoso() {
-        Usuario usuario = Usuario.builder()
-                .nombre("Test")
-                .apellido("User")
-                .email("test@example.com")
-                .documentoIdentidad("12345")
-                .salarioBase(5000000.0)
-                .build();
-
-        Rol rol = Rol.builder()
-                .idRol(1)
-                .nombre("ADMIN")
-                .build();
-
-        when(usuarioRepository.findByEmail(anyString())).thenReturn(Mono.empty());
+        // Arrange
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(rol));
+        when(usuarioRepository.findByEmail(anyString())).thenReturn(Mono.empty());
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(Mono.just(usuario));
 
+        // Act & Assert
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
-                .expectNext(usuario)
+                .expectNextMatches(savedUser -> {
+                    return savedUser.getNombre().equals("Test") && savedUser.getRol().getNombre().equals("ADMIN");
+                })
                 .verifyComplete();
     }
 
     @Test
-    void registrarUsuarioFallaPorCorreoExistente() {
-        Usuario usuario = Usuario.builder()
-                .nombre("Test")
-                .apellido("User")
-                .email("test@example.com")
-                .documentoIdentidad("12345")
-                .salarioBase(5000000.0)
-                .build();
-
-        Rol rol = Rol.builder()
-                .idRol(1)
-                .nombre("ADMIN")
-                .build();
-        usuario.setRol(rol);
-
-        when(usuarioRepository.findByEmail(anyString())).thenReturn(Mono.just(usuario));
+    void registrarUsuarioFalla_CuandoEmailYaExiste() {
+        // Arrange
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(rol));
+        when(usuarioRepository.findByEmail(anyString())).thenReturn(Mono.just(usuario)); // Simulate user exists
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(Mono.just(usuario)); // por seguridad
 
+        // Act & Assert
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
-                .expectError(IllegalArgumentException.class)
+                .expectErrorSatisfies(error -> {
+                    assertThat(error).isInstanceOf(IllegalArgumentException.class);
+                    assertThat(error).hasMessage("Ya existe un usuario registrado con ese email.");
+                })
                 .verify();
     }
 
     @Test
-    void registrarUsuarioFallaPorNombreInvalido() {
-        Usuario usuario = Usuario.builder()
-                .nombre("")
-                .apellido("User")
-                .email("test@example.com")
-                .documentoIdentidad("12345")
-                .salarioBase(5000000.0)
-                .build();
+    void registrarUsuarioFalla_CuandoRolNoExiste() {
+        // Arrange
+        when(rolRepository.findById(anyInt())).thenReturn(Mono.empty()); // Simulate role not found
 
-        Rol rol = Rol.builder()
-                .idRol(1)
-                .nombre("ADMIN")
-                .build();
-
-        when(rolRepository.findById(anyInt())).thenReturn(Mono.just(rol));
-
-        StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
-                .expectError(IllegalArgumentException.class)
-                .verify();
-    }
-
-    @Test
-    void registrarUsuarioFallaPorRolNoEncontrado() {
-        Usuario usuario = Usuario.builder()
-                .nombre("Test")
-                .apellido("User")
-                .email("test@example.com")
-                .documentoIdentidad("12345")
-                .salarioBase(5000000.0)
-                .build();
-
-        when(rolRepository.findById(anyInt())).thenReturn(Mono.empty());
-
+        // Act & Assert
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 99))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("Rol no encontrado"))
+                .expectErrorMessage("El rol no existe en el sistema.")
+                .verify();
+    }
+
+    @Test
+    void registrarUsuarioFalla_CuandoSalarioEsMenorAlMinimo() {
+        // Arrange
+        usuario.setSalarioBase(-100.0);
+
+        // Act & Assert
+        StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
+                .expectErrorMessage("El salario base debe estar entre 0 y 15000000")
+                .verify();
+    }
+
+    @Test
+    void registrarUsuarioFalla_CuandoSalarioEsMayorAlMaximo() {
+        // Arrange
+        usuario.setSalarioBase(20000000.0);
+
+        // Act & Assert
+        StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
+                .expectErrorMessage("El salario base debe estar entre 0 y 15000000")
+                .verify();
+    }
+
+    @Test
+    void registrarUsuarioFalla_CuandoSalarioEsNulo() {
+        // Arrange
+        usuario.setSalarioBase(null);
+
+        // Act & Assert
+        StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, 1))
+                .expectErrorMessage("El salario base debe estar entre 0 y 15000000")
                 .verify();
     }
 }

@@ -21,17 +21,17 @@ public class UsuarioUseCase {
     public Mono<Usuario> registrarUsuario(Usuario usuario, Integer roleId) {
 
         return validarSalario(usuario)
-                .then(rolRepository.findById(roleId)
+                .then(Mono.defer(() -> rolRepository.findById(roleId)
                         .switchIfEmpty(Mono.error(new IllegalArgumentException(MSG_ROL_NOT_FOUND)))
                         .flatMap(rol -> {
                             usuario.setRol(rol);
                             return Mono.just(usuario);
-                        }))
-                .flatMap(userWithRol -> {
-                    return usuarioRepository.findByEmail(userWithRol.getEmail())
-                            .flatMap(existingUser -> Mono.<Usuario>error(new IllegalArgumentException(MSG_EMAIL_USER_ALREADY_EXISTS)))
-                            .switchIfEmpty(usuarioRepository.save(userWithRol));
-                });
+                        })))
+                .flatMap(userWithRol ->
+                        usuarioRepository.findByEmail(userWithRol.getEmail())
+                                .flatMap(existingUser -> Mono.<Usuario>error(new IllegalArgumentException(MSG_EMAIL_USER_ALREADY_EXISTS)))
+                                .switchIfEmpty(usuarioRepository.save(userWithRol))
+                );
     }
 
     private Mono<Void> validarSalario(Usuario usuario) {
