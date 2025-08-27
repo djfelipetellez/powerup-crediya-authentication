@@ -9,4 +9,8 @@ dependencies {
     implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:$openApiVersion"
     implementation 'org.springframework:spring-tx'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testImplementation project(':app-service')
 }
