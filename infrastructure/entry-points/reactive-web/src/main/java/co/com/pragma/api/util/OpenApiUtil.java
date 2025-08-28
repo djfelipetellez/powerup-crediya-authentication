@@ -105,18 +105,11 @@ public class OpenApiUtil {
                                                 .schema(new Schema<>().$ref("#/components/schemas/ValidationErrorResponse"))
                                 ))
                         )
-                        .addApiResponse("409", new ApiResponse()
-                                .description(ApiConstantes.MSG_409)
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/UsuarioGenericErrorResponse"))
-                                ))
-                        )
                         .addApiResponse("500", new ApiResponse()
                                 .description(ApiConstantes.MSG_500)
                                 .content(new Content().addMediaType("application/json",
                                         new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/GenericErrorResponse"))
+                                                .schema(new Schema<>().$ref("#/components/schemas/UsuarioGenericErrorResponse"))
                                 ))
                         )
                 );

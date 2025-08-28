@@ -55,7 +55,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 errorResponse.put(ApiConstantes.KEY_ERRORS, constraintErrors);
             }
             case DataIntegrityViolationException ex -> {
-                httpStatus = HttpStatus.CONFLICT;
+                httpStatus = HttpStatus.BAD_REQUEST;
                 String message = ApiConstantes.MSG_DATA_INTEGRITY_VIOLATION;
                 if (ex.getMessage().toLowerCase().contains("documento_identidad")) {
                     message = ApiConstantes.MSG_DATA_INTEGRITY_DOCUMENT;
