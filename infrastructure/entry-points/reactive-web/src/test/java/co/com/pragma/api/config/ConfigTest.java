@@ -25,6 +25,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
@@ -93,7 +95,7 @@ class ConfigTest {
         setupUsuarioMocks();
 
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", 100.0, 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
 
         webTestClient.post()
                 .uri("/api/v1/usuarios")
@@ -140,7 +142,7 @@ class ConfigTest {
         setupUsuarioMocks();
 
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", 100.0, 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
 
         webTestClient.post()
                 .uri("/api/v1/usuarios")
@@ -158,12 +160,12 @@ class ConfigTest {
     private void setupUsuarioMocks() {
         Usuario usuario = new Usuario();
         UsuarioResponseDto usuarioResponseDto = new UsuarioResponseDto(
-                1, "test", "test", "test@test.com", "12345", "12345", 100.0,
-                new RoleResponseDto(1L, "test", "test"));
+                1, "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100),
+                new RoleResponseDto(1, "test", "test"));
 
         given(requestValidator.validate(any(UsuarioRegistroRequestDto.class)))
                 .willReturn(Mono.just(new UsuarioRegistroRequestDto(
-                        "test", "test", "test@test.com", "12345", "12345", 100.0, 1)));
+                        "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1)));
         given(usuarioMapper.toDomain(any(UsuarioRegistroRequestDto.class)))
                 .willReturn(usuario);
         given(usuarioUseCase.registrarUsuario(any(Usuario.class), anyInt()))
@@ -174,7 +176,7 @@ class ConfigTest {
 
     private void setupRolMocks() {
         Rol rol = new Rol();
-        RoleResponseDto roleResponseDto = new RoleResponseDto(1L, "test", "test");
+        RoleResponseDto roleResponseDto = new RoleResponseDto(1, "test", "test");
 
         given(requestValidator.validate(any(RolRegistroRequestDto.class)))
                 .willReturn(Mono.just(new RolRegistroRequestDto("test", "test")));

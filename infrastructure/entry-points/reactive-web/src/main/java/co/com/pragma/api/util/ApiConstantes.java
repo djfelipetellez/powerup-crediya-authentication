@@ -6,6 +6,7 @@ public final class ApiConstantes {
         throw new IllegalStateException("Utility class");
     }
 
+
     // OPEN API CONSTANTES
     public static final String TITLE_APP = "API AUTENTICACION";
     public static final String VERSION_APP = "1.0";
@@ -33,7 +34,6 @@ public final class ApiConstantes {
     // --- Mensajes open api genericos ---
     public static final String MSG_200 = "Operación exitosa";
     public static final String MSG_400 = "Petición inválida";
-    public static final String MSG_409 = "Conflicto: el recurso ya existe";
     public static final String MSG_500 = "Error interno del servidor";
 
     public static final String USUARIO_PROPERTY = "ADMIN";

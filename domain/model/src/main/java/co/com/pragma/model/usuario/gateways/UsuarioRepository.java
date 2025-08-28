@@ -8,4 +8,6 @@ public interface UsuarioRepository {
     Mono<Usuario> save(Usuario usuario);
 
     Mono<Usuario> findByEmail(String email);
+
+    Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId);
 }

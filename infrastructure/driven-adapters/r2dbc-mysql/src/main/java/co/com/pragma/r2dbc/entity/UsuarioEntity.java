@@ -4,6 +4,8 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -20,7 +22,7 @@ public class UsuarioEntity {
     private String email;
     private String documentoIdentidad;
     private String telefono;
-    private Double salarioBase;
+    private BigDecimal salarioBase;
     private Integer idRol;
 
 }

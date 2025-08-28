@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class UseCasesConfig {
 
     @Bean
-    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolRepository rolRepository) {
-        return new UsuarioUseCase(usuarioRepository, rolRepository);
+    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolUseCase rolUseCase) {
+        return new UsuarioUseCase(usuarioRepository, rolUseCase);
     }
 
     @Bean

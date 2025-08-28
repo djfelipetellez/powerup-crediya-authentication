@@ -7,6 +7,7 @@ import co.com.pragma.r2dbc.entity.UsuarioEntity;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -29,11 +30,9 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     public Mono<Usuario> save(Usuario usuario) {
-
         // Validar que el usuario tenga un rol asignado
         if (usuario.getRol() == null || usuario.getRol().getIdRol() == null) {
-            return Mono.error(new IllegalArgumentException("El usuario debe tener un rol asignado - Rol: " +
-                    (usuario.getRol() != null ? usuario.getRol() : "null")));
+            return Mono.error(new IllegalArgumentException("El usuario debe tener un rol asignado"));
         }
 
         UsuarioEntity entity = UsuarioEntity.builder()
@@ -63,6 +62,9 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     public Mono<Usuario> findByEmail(String email) {
+        if (email == null) {
+            return Mono.empty();
+        }
         return usuarioRepository.findByEmail(email)
                 .flatMap(entity -> {
                     if (entity.getIdRol() != null) {
@@ -86,5 +88,13 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                         return Mono.error(new IllegalStateException("Usuario encontrado sin rol asignado"));
                     }
                 });
+    }
+
+    @Override
+    @Transactional
+    public Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId) {
+        // Assume roleId is valid as it's validated by UseCase layer
+        usuario.setRol(Rol.builder().idRol(roleId).build());
+        return save(usuario);
     }
 }

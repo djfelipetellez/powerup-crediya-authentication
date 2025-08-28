@@ -23,6 +23,8 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
@@ -69,7 +71,7 @@ class RouterRestTest {
     void registrarUsuarioTest() {
         // Given
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", 100.0, 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
         Usuario usuario = createUsuarioMock();
         UsuarioResponseDto usuarioResponseDto = createUsuarioResponseDto();
 
@@ -115,8 +117,8 @@ class RouterRestTest {
 
     private UsuarioResponseDto createUsuarioResponseDto() {
         return new UsuarioResponseDto(
-                1, "test", "test", "test@test.com", "12345", "12345", 100.0,
-                new RoleResponseDto(1L, "test", "test"));
+                1, "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100),
+                new RoleResponseDto(1, "test", "test"));
     }
 
     private Rol createRolMock() {
@@ -124,7 +126,7 @@ class RouterRestTest {
     }
 
     private RoleResponseDto createRoleResponseDto() {
-        return new RoleResponseDto(1L, "test", "test");
+        return new RoleResponseDto(1, "test", "test");
     }
 
     // Métodos helper para configurar mocks

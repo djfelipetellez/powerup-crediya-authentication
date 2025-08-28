@@ -3,6 +3,8 @@ package co.com.pragma.model.usuario;
 import co.com.pragma.model.rol.Rol;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -24,14 +26,14 @@ class UsuarioTest {
     @Test
     void testAllArgsConstructor() {
         Rol rol = new Rol(1, "Admin", "Administrador");
-        Usuario usuario = new Usuario(1, "Juan", "Perez", "juan.perez@example.com", "123456789", "3001234567", 50000.0, rol);
+        Usuario usuario = new Usuario(1, "Juan", "Perez", "juan.perez@example.com", "123456789", "3001234567", BigDecimal.valueOf(50000.0), rol);
         assertEquals(1, usuario.getIdUsuario());
         assertEquals("Juan", usuario.getNombre());
         assertEquals("Perez", usuario.getApellido());
         assertEquals("juan.perez@example.com", usuario.getEmail());
         assertEquals("123456789", usuario.getDocumentoIdentidad());
         assertEquals("3001234567", usuario.getTelefono());
-        assertEquals(50000.0, usuario.getSalarioBase());
+        assertEquals(BigDecimal.valueOf(50000.0), usuario.getSalarioBase());
         assertEquals(rol, usuario.getRol());
     }
 
@@ -45,7 +47,7 @@ class UsuarioTest {
                 .email("juan.perez@example.com")
                 .documentoIdentidad("123456789")
                 .telefono("3001234567")
-                .salarioBase(50000.0)
+                .salarioBase(BigDecimal.valueOf(50000.0))
                 .rol(rol)
                 .build();
         assertEquals(1, usuario.getIdUsuario());
@@ -54,7 +56,7 @@ class UsuarioTest {
         assertEquals("juan.perez@example.com", usuario.getEmail());
         assertEquals("123456789", usuario.getDocumentoIdentidad());
         assertEquals("3001234567", usuario.getTelefono());
-        assertEquals(50000.0, usuario.getSalarioBase());
+        assertEquals(BigDecimal.valueOf(50000.0), usuario.getSalarioBase());
         assertEquals(rol, usuario.getRol());
     }
 
@@ -68,7 +70,7 @@ class UsuarioTest {
                 .email("juan.perez@example.com")
                 .documentoIdentidad("123456789")
                 .telefono("3001234567")
-                .salarioBase(50000.0)
+                .salarioBase(BigDecimal.valueOf(50000.0))
                 .rol(rol)
                 .build();
         Usuario usuario2 = usuario1.toBuilder().nombre("John").build();
@@ -78,7 +80,7 @@ class UsuarioTest {
         assertEquals("juan.perez@example.com", usuario2.getEmail());
         assertEquals("123456789", usuario2.getDocumentoIdentidad());
         assertEquals("3001234567", usuario2.getTelefono());
-        assertEquals(50000.0, usuario2.getSalarioBase());
+        assertEquals(BigDecimal.valueOf(50000.0), usuario2.getSalarioBase());
         assertEquals(rol, usuario2.getRol());
     }
 
@@ -92,7 +94,7 @@ class UsuarioTest {
         usuario.setEmail("juan.perez@example.com");
         usuario.setDocumentoIdentidad("123456789");
         usuario.setTelefono("3001234567");
-        usuario.setSalarioBase(50000.0);
+        usuario.setSalarioBase(BigDecimal.valueOf(50000.0));
         usuario.setRol(rol);
 
         assertEquals(1, usuario.getIdUsuario());
@@ -101,7 +103,7 @@ class UsuarioTest {
         assertEquals("juan.perez@example.com", usuario.getEmail());
         assertEquals("123456789", usuario.getDocumentoIdentidad());
         assertEquals("3001234567", usuario.getTelefono());
-        assertEquals(50000.0, usuario.getSalarioBase());
+        assertEquals(BigDecimal.valueOf(50000.0), usuario.getSalarioBase());
         assertEquals(rol, usuario.getRol());
     }
 }

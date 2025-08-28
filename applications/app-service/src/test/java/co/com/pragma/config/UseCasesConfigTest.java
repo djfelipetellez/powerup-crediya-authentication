@@ -1,7 +1,7 @@
 package co.com.pragma.config;
 
-import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
+import co.com.pragma.usecase.rol.RolUseCase;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +40,8 @@ class UseCasesConfigTest {
         }
 
         @Bean
-        public RolRepository rolRepository() {
-            return mock(RolRepository.class);
+        public RolUseCase rolUseCase() {
+            return mock(RolUseCase.class);
         }
     }
 }

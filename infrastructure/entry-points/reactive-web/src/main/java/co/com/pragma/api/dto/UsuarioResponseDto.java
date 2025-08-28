@@ -1,5 +1,7 @@
 package co.com.pragma.api.dto;
 
+import java.math.BigDecimal;
+
 public record UsuarioResponseDto(
         Integer idUsuario,
         String nombre,
@@ -7,7 +9,7 @@ public record UsuarioResponseDto(
         String email,
         String documentoIdentidad,
         String telefono,
-        Double salarioBase,
+        BigDecimal salarioBase,
         RoleResponseDto rol
 ) {
 }

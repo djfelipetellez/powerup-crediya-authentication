@@ -1,7 +1,7 @@
 package co.com.pragma.api.exception;
 
 import co.com.pragma.api.util.ApiConstantes;
-import co.com.pragma.api.util.LoggingUtil;
+import co.com.pragma.model.common.LoggingUtil;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.boot.autoconfigure.web.WebProperties;

@@ -1,4 +1,4 @@
 package co.com.pragma.api.dto;
 
-public record RoleResponseDto(Long idRol, String nombre, String descripcion) {
+public record RoleResponseDto(Integer idRol, String nombre, String descripcion) {
 }

@@ -3,6 +3,8 @@ package co.com.pragma.model.usuario;
 import co.com.pragma.model.rol.Rol;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -16,7 +18,7 @@ public class Usuario {
     private String email;
     private String documentoIdentidad;
     private String telefono;
-    private Double salarioBase;
+    private BigDecimal salarioBase;
     private Rol rol;
 
 
