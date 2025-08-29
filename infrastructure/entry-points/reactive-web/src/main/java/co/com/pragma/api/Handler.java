@@ -5,7 +5,7 @@ import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
-import co.com.pragma.model.common.LoggingUtil;
+import co.com.pragma.model.common.gateways.LoggingGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.usecase.rol.RolUseCase;
@@ -27,19 +27,20 @@ public class Handler {
     private final UsuarioMapper usuarioMapper;
     private final RolMapper rolMapper;
     private final RequestValidator requestValidator;
+    private final LoggingGateway loggingGateway;
 
     public Mono<ServerResponse> registrarUsuario(ServerRequest request) {
         return request.bodyToMono(UsuarioRegistroRequestDto.class)
                 .flatMap(requestValidator::validate)
                 .flatMap(requestDto -> {
-                    LoggingUtil.info("registrarUsuario", String.format("Intento de registro de usuario: email=%s, doc=%s", requestDto.email(), requestDto.documentoIdentidad()));
+                    loggingGateway.info("registrarUsuario", String.format("Intento de registro de usuario: email=%s, doc=%s", requestDto.email(), requestDto.documentoIdentidad()));
 
                     Usuario usuario = usuarioMapper.toDomain(requestDto);
                     Integer idRol = requestDto.idRol();
 
                     return usuarioUseCase.registrarUsuario(usuario, idRol)
                             .flatMap(saved -> {
-                                LoggingUtil.info("registrarUsuario", String.format("Usuario registrado id=%d, email=%s", saved.getIdUsuario(), saved.getEmail()));
+                                loggingGateway.info("registrarUsuario", String.format("Usuario registrado id=%d, email=%s", saved.getIdUsuario(), saved.getEmail()));
                                 return ServerResponse.status(HttpStatus.CREATED)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .bodyValue(usuarioMapper.toResponseDto(saved));
@@ -51,13 +52,13 @@ public class Handler {
         return request.bodyToMono(RolRegistroRequestDto.class)
                 .flatMap(requestValidator::validate)
                 .flatMap(requestDto -> {
-                    LoggingUtil.info("registrarRol", String.format("Intento de registro de rol: nombre=%s", requestDto.nombre()));
+                    loggingGateway.info("registrarRol", String.format("Intento de registro de rol: nombre=%s", requestDto.nombre()));
 
                     Rol rol = rolMapper.toDomain(requestDto);
 
                     return rolUseCase.registrarRol(rol)
                             .flatMap(saved -> {
-                                LoggingUtil.info("registrarRol", String.format("Rol registrado id=%d, nombre=%s", saved.getIdRol(), saved.getNombre()));
+                                loggingGateway.info("registrarRol", String.format("Rol registrado id=%d, nombre=%s", saved.getIdRol(), saved.getNombre()));
                                 return ServerResponse.status(HttpStatus.CREATED)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .bodyValue(rolMapper.toResponseDto(saved));

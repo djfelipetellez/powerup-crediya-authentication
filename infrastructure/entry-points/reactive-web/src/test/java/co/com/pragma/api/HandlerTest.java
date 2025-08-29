@@ -6,6 +6,7 @@ import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.common.gateways.LoggingGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.usecase.rol.RolUseCase;
@@ -23,6 +24,7 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 class HandlerTest {
@@ -46,6 +48,9 @@ class HandlerTest {
     private RequestValidator requestValidator;
 
     @Mock
+    private LoggingGateway loggingGateway;
+
+    @Mock
     private ServerRequest serverRequest;
 
     @BeforeEach
@@ -65,6 +70,7 @@ class HandlerTest {
         when(usuarioMapper.toDomain(any())).thenReturn(usuario);
         when(usuarioUseCase.registrarUsuario(any(), any())).thenReturn(Mono.just(usuario));
         when(usuarioMapper.toResponseDto(any())).thenReturn(responseDto);
+        doNothing().when(loggingGateway).info(any(), any());
 
         handler.registrarUsuario(serverRequest)
                 .as(StepVerifier::create)
@@ -82,6 +88,7 @@ class HandlerTest {
         when(rolMapper.toDomain(any())).thenReturn(rol);
         when(rolUseCase.registrarRol(any())).thenReturn(Mono.just(rol));
         when(rolMapper.toResponseDto(any())).thenReturn(new co.com.pragma.api.dto.RoleResponseDto(1, "test", "test description"));
+        doNothing().when(loggingGateway).info(any(), any());
 
         handler.registrarRol(serverRequest)
                 .as(StepVerifier::create)

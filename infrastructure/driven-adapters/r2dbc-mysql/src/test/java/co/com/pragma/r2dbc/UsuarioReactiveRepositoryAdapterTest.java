@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.reactivecommons.utils.ObjectMapper;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -207,9 +206,9 @@ class UsuarioReactiveRepositoryAdapterTest {
     @Test
     void findByEmail_shouldReturnUsuario_whenFoundWithRol() {
         // Arrange
-        when(usuarioRepository.findByEmail(eq("juan.perez@example.com")))
+        when(usuarioRepository.findByEmail("juan.perez@example.com"))
                 .thenReturn(Mono.just(usuarioEntity));
-        when(rolRepository.findById(eq(1))).thenReturn(Mono.just(rolEntity));
+        when(rolRepository.findById(1)).thenReturn(Mono.just(rolEntity));
 
         // Act & Assert
         StepVerifier.create(adapter.findByEmail("juan.perez@example.com"))

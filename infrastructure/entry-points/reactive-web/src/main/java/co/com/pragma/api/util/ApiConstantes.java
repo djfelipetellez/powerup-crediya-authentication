@@ -1,11 +1,9 @@
 package co.com.pragma.api.util;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public final class ApiConstantes {
-
-    private ApiConstantes() {
-        throw new IllegalStateException("Utility class");
-    }
-
 
     // OPEN API CONSTANTES
     public static final String TITLE_APP = "API AUTENTICACION";

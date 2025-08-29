@@ -9,6 +9,7 @@ import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.common.gateways.LoggingGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.usecase.rol.RolUseCase;
@@ -51,9 +52,12 @@ class ConfigTest {
     @Mock
     private RequestValidator requestValidator;
 
+    @Mock
+    private LoggingGateway loggingGateway;
+
     @BeforeEach
     void setUp() {
-        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator);
+        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, loggingGateway);
 
         RouterRest routerRest = new RouterRest();
 

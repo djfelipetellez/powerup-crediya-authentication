@@ -48,11 +48,4 @@ class RolTest {
         assertEquals("Administrador del sistema", rol2.getDescripcion());
     }
 
-    @Test
-    void testGetters() {
-        Rol rol = new Rol(1, "Admin", "Administrador del sistema");
-        assertEquals(1, rol.getIdRol());
-        assertEquals("Admin", rol.getNombre());
-        assertEquals("Administrador del sistema", rol.getDescripcion());
-    }
 }

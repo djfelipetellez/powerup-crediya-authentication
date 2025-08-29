@@ -5,11 +5,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvent;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.*;
 import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.AfterAll;
@@ -62,7 +58,7 @@ class ArchitectureTest {
     static void exportIssues() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List.of("/Users/felipetellezdj/git/powerup-crediya-autenticacion/applications/app-service/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/commons/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/usecase/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/driven-adapters/r2dbc-mysql/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/entry-points/reactive-web/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/model/").forEach(path -> {
+            List.of("/Users/felipetellezdj/git/powerup-crediya-autenticacion/applications/app-service/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/helpers/log-util/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/usecase/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/driven-adapters/r2dbc-mysql/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/entry-points/reactive-web/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/model/").forEach(path -> {
                 try {
                     Files.write(Path.of(path, "build/issues.json"), mapper.writeValueAsBytes(issues.getOrDefault(path, new Utils.IssuesReport())));
                 } catch (IOException e) {

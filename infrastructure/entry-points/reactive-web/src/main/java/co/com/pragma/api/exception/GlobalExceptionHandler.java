@@ -1,7 +1,7 @@
 package co.com.pragma.api.exception;
 
 import co.com.pragma.api.util.ApiConstantes;
-import co.com.pragma.model.common.LoggingUtil;
+import co.com.pragma.model.common.gateways.LoggingGateway;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.boot.autoconfigure.web.WebProperties;
@@ -27,10 +27,13 @@ import java.util.stream.Collectors;
 @Order(-2)
 public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
+    private final LoggingGateway loggingGateway;
+
     public GlobalExceptionHandler(ErrorAttributes errorAttributes, ApplicationContext applicationContext,
-                                  ServerCodecConfigurer serverCodecConfigurer) {
+                                  ServerCodecConfigurer serverCodecConfigurer, LoggingGateway loggingGateway) {
         super(errorAttributes, new WebProperties().getResources(), applicationContext);
         this.setMessageWriters(serverCodecConfigurer.getWriters());
+        this.loggingGateway = loggingGateway;
     }
 
     @Override
@@ -47,7 +50,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
         switch (error) {
             case ConstraintViolationException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
-                LoggingUtil.warn(action, ApiConstantes.CONSTRAINT_VIOLATION + ex.getMessage(), ex);
+                loggingGateway.warn(action, ApiConstantes.CONSTRAINT_VIOLATION + ex.getMessage(), ex);
                 List<String> constraintErrors = ex.getConstraintViolations().stream()
                         .map(ConstraintViolation::getMessage)
                         .collect(Collectors.toList());
@@ -62,17 +65,17 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 } else if (ex.getMessage().toLowerCase().contains("email")) {
                     message = ApiConstantes.MSG_DATA_INTEGRITY_EMAIL;
                 }
-                LoggingUtil.warn(action, ApiConstantes.LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
+                loggingGateway.warn(action, ApiConstantes.LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
                 errorResponse.put(ApiConstantes.KEY_MESSAGE, message);
             }
             case IllegalArgumentException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
-                LoggingUtil.warn(action, ApiConstantes.LOG_CLIENT_ERROR + ex.getMessage(), ex);
+                loggingGateway.warn(action, ApiConstantes.LOG_CLIENT_ERROR + ex.getMessage(), ex);
                 errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
             }
             default -> {
                 httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-                LoggingUtil.error(action, ApiConstantes.LOG_SERVER_ERROR + error.getMessage(), error);
+                loggingGateway.error(action, ApiConstantes.LOG_SERVER_ERROR + error.getMessage(), error);
                 errorResponse.put(ApiConstantes.KEY_MESSAGE, ApiConstantes.MSG_UNEXPECTED_ERROR);
             }
         }
