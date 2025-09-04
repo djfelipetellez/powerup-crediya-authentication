@@ -4,6 +4,7 @@ import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.Usuario;
+import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioValidator;
 import lombok.RequiredArgsConstructor;
@@ -41,12 +42,17 @@ public class UsuarioUseCase {
         loggingGateway.info("UsuarioUseCase", "Validando datos de usuario: documento=" + documentoIdentidad + ", email=" + email);
 
         return usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Usuario no encontrado con documento: " + documentoIdentidad + " y email: " + email)))
+                .switchIfEmpty(Mono.error(new UsuarioNotFoundException("Usuario no encontrado con documento: " + documentoIdentidad + " y email: " + email)))
                 .then()
                 .doOnSuccess(result ->
                         loggingGateway.info("UsuarioUseCase", "Datos de usuario validados exitosamente"))
-                .doOnError(error ->
-                        loggingGateway.error("UsuarioUseCase", "Error validando existencia de usuario: " + error.getMessage(), error));
+                .doOnError(error -> {
+                    if (error instanceof UsuarioNotFoundException) {
+                        loggingGateway.info("UsuarioUseCase", "Usuario no encontrado durante validación: " + error.getMessage());
+                    } else {
+                        loggingGateway.error("UsuarioUseCase", "Error validando existencia de usuario: " + error.getMessage(), error);
+                    }
+                });
     }
 
 

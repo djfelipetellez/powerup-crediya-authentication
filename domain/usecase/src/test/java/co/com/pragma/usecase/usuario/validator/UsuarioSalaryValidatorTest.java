@@ -1,6 +1,7 @@
 package co.com.pragma.usecase.usuario.validator;
 
 import co.com.pragma.model.common.Constantes;
+import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.usuario.Usuario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,7 @@ class UsuarioSalaryValidatorTest {
         // Act & Assert
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
-                        error instanceof IllegalArgumentException &&
+                        error instanceof BusinessRuleException &&
                                 error.getMessage().equals(expectedMessage)
                 )
                 .verify();
@@ -92,7 +93,7 @@ class UsuarioSalaryValidatorTest {
         // Act & Assert
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
-                        error instanceof IllegalArgumentException &&
+                        error instanceof BusinessRuleException &&
                                 error.getMessage().equals(expectedMessage)
                 )
                 .verify();

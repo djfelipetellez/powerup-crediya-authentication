@@ -32,7 +32,25 @@ cors:
 # API Paths Configuration
 api:
   paths:
-    usuarios: "/api/v1/usuarios"
-    roles: "/api/v1/roles"
-    validacion:
+    usuarios:
+      base: "/api/v1/usuarios"
       validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"
+    roles: "/api/v1/roles"
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  info:
+    title: "Crediya Authenticacion API"
+    description: "API para la gestion de usuarios y roles de crediya"
+    version: "1.0.0"
+    contact:
+      name: "Pragma Team"
+      email: "support@pragma.com"
+    license:
+      name: "MIT"
+      url: "https://opensource.org/licenses/MIT"

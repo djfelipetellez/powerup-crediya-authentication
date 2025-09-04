@@ -1,7 +1,9 @@
 package co.com.pragma.api.exception;
 
 import co.com.pragma.api.util.ApiConstantes;
+import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.common.gateways.LogGateway;
+import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.boot.autoconfigure.web.WebProperties;
@@ -32,8 +34,8 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     public GlobalExceptionHandler(ErrorAttributes errorAttributes, ApplicationContext applicationContext,
                                   ServerCodecConfigurer serverCodecConfigurer, LogGateway logGateway) {
         super(errorAttributes, new WebProperties().getResources(), applicationContext);
-        this.setMessageWriters(serverCodecConfigurer.getWriters());
         this.logGateway = logGateway;
+        this.setMessageWriters(serverCodecConfigurer.getWriters());
     }
 
     @Override
@@ -67,6 +69,16 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 }
                 logGateway.warn(action, ApiConstantes.LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
                 errorResponse.put(ApiConstantes.KEY_MESSAGE, message);
+            }
+            case UsuarioNotFoundException ex -> {
+                httpStatus = HttpStatus.NOT_FOUND;
+                logGateway.warn(action, "Usuario no encontrado: " + ex.getMessage(), ex);
+                errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
+            }
+            case BusinessRuleException ex -> {
+                httpStatus = HttpStatus.BAD_REQUEST;
+                logGateway.warn(action, "Regla de negocio violada: " + ex.getMessage(), ex);
+                errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
             }
             case IllegalArgumentException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
