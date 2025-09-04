@@ -1,23 +1,22 @@
 server:
   port: 8080
 spring:
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/auth_db
+    username: root
+    password: admin
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+    sql:
+      init:
+        mode: always
   application:
     name: "powerup-crediya-authentication"
   devtools:
     add-properties: false
-  h2:
-    console:
-      enabled: true
-      path: "/h2"
-  profiles:
-    include: null
-  datasource:
-    url: "jdbc:h2:mem:test"
-    username: "sa"
-    password: "pass"
-    driverClassName: "org.h2.Driver"
-  jpa:
-    databasePlatform: "org.hibernate.dialect.H2Dialect"
 management:
   endpoints:
     web:
@@ -29,3 +28,11 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+# API Paths Configuration
+api:
+  paths:
+    usuarios: "/api/v1/usuarios"
+    roles: "/api/v1/roles"
+    validacion:
+      validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"
