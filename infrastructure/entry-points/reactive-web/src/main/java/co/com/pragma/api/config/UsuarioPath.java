@@ -1,19 +1,20 @@
 package co.com.pragma.api.config;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
+@Setter
+@ConfigurationProperties(prefix = "api.paths.usuarios")
 public class UsuarioPath {
 
-    private final String usuarios;
-    private final String validarExistenciaUsuario;
+    private String base;
+    private String validarExistenciaUsuario;
 
-    public UsuarioPath(@Value("${api.paths.usuarios}") String usuarios,
-                       @Value("${api.paths.validacion.validar-existencia-usuario}") String validarExistenciaUsuario) {
-        this.usuarios = usuarios;
-        this.validarExistenciaUsuario = validarExistenciaUsuario;
+    public String getUsuarios() {
+        return base;
     }
 }

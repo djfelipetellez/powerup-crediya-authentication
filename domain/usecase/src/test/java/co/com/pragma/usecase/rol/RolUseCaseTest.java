@@ -45,8 +45,11 @@ class RolUseCaseTest {
         doNothing().when(loggingGateway).info(any(), any());
         when(rolRepository.save(any(Rol.class))).thenReturn(Mono.just(rol));
 
-        // Act & Assert
-        StepVerifier.create(rolUseCase.registrarRol(rol))
+        // Act
+        Mono<Rol> result = rolUseCase.registrarRol(rol);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectNextMatches(savedRol -> savedRol.getNombre().equals("TEST_ROLE"))
                 .verifyComplete();
     }
@@ -59,8 +62,11 @@ class RolUseCaseTest {
         when(rolRepository.save(null))
                 .thenReturn(Mono.error(new NullPointerException("Rol cannot be null")));
 
-        // Act & Assert
-        StepVerifier.create(rolUseCase.registrarRol(null))
+        // Act
+        Mono<Rol> result = rolUseCase.registrarRol(null);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectError(NullPointerException.class)
                 .verify();
     }
@@ -73,8 +79,11 @@ class RolUseCaseTest {
         when(rolRepository.save(any(Rol.class)))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
-        // Act & Assert
-        StepVerifier.create(rolUseCase.registrarRol(rol))
+        // Act
+        Mono<Rol> result = rolUseCase.registrarRol(rol);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectErrorMatches(error ->
                         error instanceof RuntimeException &&
                                 error.getMessage().equals("Database error")

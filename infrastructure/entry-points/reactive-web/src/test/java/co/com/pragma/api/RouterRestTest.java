@@ -6,9 +6,9 @@ import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
-import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
+import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,14 +50,18 @@ class RouterRestTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private LogGateway loggingGateway;
+    private co.com.pragma.model.common.gateways.LogGateway logGateway;
 
     @BeforeEach
     void setUp() {
-        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, loggingGateway);
+        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
 
-        UsuarioPath usuarioPath = new UsuarioPath("/api/v1/usuarios", "/api/v1/usuarios/validar-existencia");
-        RolPath rolPath = new RolPath("/api/v1/roles");
+        UsuarioPath usuarioPath = new UsuarioPath();
+        usuarioPath.setBase("/api/v1/usuarios");
+        usuarioPath.setValidarExistenciaUsuario("/api/v1/usuarios/validar-existencia");
+        
+        RolPath rolPath = new RolPath();
+        rolPath.setRoles("/api/v1/roles");
 
         RouterRest routerRest = new RouterRest(usuarioPath, rolPath);
 
@@ -76,7 +80,7 @@ class RouterRestTest {
 
     @Test
     void registrarUsuarioTest() {
-        // Given
+        // Arrange
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
                 "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
         Usuario usuario = createUsuarioMock();
@@ -84,7 +88,7 @@ class RouterRestTest {
 
         mockUsuarioFlow(requestDto, usuario, usuarioResponseDto);
 
-        // When & Then
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/usuarios")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -98,14 +102,14 @@ class RouterRestTest {
 
     @Test
     void registrarRolTest() {
-        // Given
+        // Arrange
         RolRegistroRequestDto requestDto = new RolRegistroRequestDto("test", "test");
         Rol rol = createRolMock();
         RoleResponseDto roleResponseDto = createRoleResponseDto();
 
         mockRolFlow(requestDto, rol, roleResponseDto);
 
-        // When & Then
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/roles")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -119,7 +123,7 @@ class RouterRestTest {
 
     @Test
     void validarExistenciaUsuarioTest() {
-        // Given
+        // Arrange
         ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
 
         given(requestValidator.validate(any(ClienteValidationRequest.class)))
@@ -127,7 +131,7 @@ class RouterRestTest {
         given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
                 .willReturn(Mono.empty());
 
-        // When & Then
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/usuarios/validar-existencia")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -138,15 +142,15 @@ class RouterRestTest {
 
     @Test
     void validarExistenciaUsuarioTest_UserNotFound() {
-        // Given
+        // Arrange
         ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
 
         given(requestValidator.validate(any(ClienteValidationRequest.class)))
                 .willReturn(Mono.just(requestDto));
         given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
-                .willReturn(Mono.error(new IllegalArgumentException("Usuario no encontrado")));
+                .willReturn(Mono.error(new UsuarioNotFoundException("Usuario no encontrado")));
 
-        // When & Then
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/usuarios/validar-existencia")
                 .contentType(MediaType.APPLICATION_JSON)

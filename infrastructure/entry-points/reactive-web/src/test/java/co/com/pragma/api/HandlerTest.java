@@ -10,6 +10,7 @@ import co.com.pragma.api.util.RequestValidator;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
+import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -49,7 +51,7 @@ class HandlerTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private LogGateway loggingGateway;
+    private LogGateway logGateway;
 
     @Mock
     private ServerRequest serverRequest;
@@ -61,6 +63,7 @@ class HandlerTest {
 
     @Test
     void registrarUsuario() {
+        // Arrange
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto("test", "test", "test@test.com", "123456789", "123456789", new BigDecimal(1000), 1);
         Usuario usuario = new Usuario();
         co.com.pragma.api.dto.RoleResponseDto roleResponseDto = new co.com.pragma.api.dto.RoleResponseDto(1, "test", "test");
@@ -71,16 +74,20 @@ class HandlerTest {
         when(usuarioMapper.toDomain(any())).thenReturn(usuario);
         when(usuarioUseCase.registrarUsuario(any(), any())).thenReturn(Mono.just(usuario));
         when(usuarioMapper.toResponseDto(any())).thenReturn(responseDto);
-        doNothing().when(loggingGateway).info(any(), any());
+        doNothing().when(logGateway).info(any(), any());
 
-        handler.registrarUsuario(serverRequest)
-                .as(StepVerifier::create)
+        // Act
+        Mono<ServerResponse> result = handler.registrarUsuario(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.CREATED))
                 .verifyComplete();
     }
 
     @Test
     void registrarRol() {
+        // Arrange
         RolRegistroRequestDto requestDto = new RolRegistroRequestDto("test", "test description");
         Rol rol = new Rol();
 
@@ -89,42 +96,53 @@ class HandlerTest {
         when(rolMapper.toDomain(any())).thenReturn(rol);
         when(rolUseCase.registrarRol(any())).thenReturn(Mono.just(rol));
         when(rolMapper.toResponseDto(any())).thenReturn(new co.com.pragma.api.dto.RoleResponseDto(1, "test", "test description"));
-        doNothing().when(loggingGateway).info(any(), any());
+        doNothing().when(logGateway).info(any(), any());
 
-        handler.registrarRol(serverRequest)
-                .as(StepVerifier::create)
+        // Act
+        Mono<ServerResponse> result = handler.registrarRol(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.CREATED))
                 .verifyComplete();
     }
 
     @Test
     void validarExistenciaUsuario_Success() {
+        // Arrange
         ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
 
         when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
         when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
         when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com"))).thenReturn(Mono.empty());
-        doNothing().when(loggingGateway).info(any(), any());
+        doNothing().when(logGateway).info(any(), any());
 
-        handler.validarExistenciaUsuario(serverRequest)
-                .as(StepVerifier::create)
+        // Act
+        Mono<ServerResponse> result = handler.validarExistenciaUsuario(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
                 .verifyComplete();
     }
 
     @Test
     void validarExistenciaUsuario_UserNotFound() {
+        // Arrange
         ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
 
         when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
         when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
         when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com")))
-                .thenReturn(Mono.error(new IllegalArgumentException("Usuario no encontrado")));
-        doNothing().when(loggingGateway).error(any(), any(), any());
+                .thenReturn(Mono.error(new UsuarioNotFoundException("Usuario no encontrado")));
+        doNothing().when(logGateway).error(any(), any(), any());
 
-        handler.validarExistenciaUsuario(serverRequest)
-                .as(StepVerifier::create)
-                .expectError(IllegalArgumentException.class)
+        // Act
+        Mono<ServerResponse> result = handler.validarExistenciaUsuario(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectError(UsuarioNotFoundException.class)
                 .verify();
     }
 }

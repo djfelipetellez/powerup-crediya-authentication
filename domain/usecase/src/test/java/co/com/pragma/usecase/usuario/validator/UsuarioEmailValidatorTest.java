@@ -1,6 +1,7 @@
 package co.com.pragma.usecase.usuario.validator;
 
 import co.com.pragma.model.common.Constantes;
+import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ class UsuarioEmailValidatorTest {
         // Act & Assert
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
-                        error instanceof IllegalArgumentException &&
+                        error instanceof BusinessRuleException &&
                                 error.getMessage().equals(Constantes.MSG_EMAIL_DUPLICATE)
                 )
                 .verify();

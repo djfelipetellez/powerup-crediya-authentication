@@ -1,6 +1,7 @@
 package co.com.pragma.usecase.usuario.validator;
 
 import co.com.pragma.model.common.Constantes;
+import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioValidator;
@@ -17,7 +18,7 @@ public class UsuarioEmailValidator implements UsuarioValidator {
         return usuarioRepository.findByEmail(usuario.getEmail())
                 .hasElement()
                 .filter(exists -> !exists)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException(Constantes.MSG_EMAIL_DUPLICATE)))
+                .switchIfEmpty(Mono.error(new BusinessRuleException(Constantes.MSG_EMAIL_DUPLICATE)))
                 .then();
     }
 }

@@ -1,6 +1,7 @@
 package co.com.pragma.usecase.usuario.validator;
 
 import co.com.pragma.model.common.Constantes;
+import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioValidator;
 import reactor.core.publisher.Mono;
@@ -18,7 +19,7 @@ public class UsuarioSalaryValidator implements UsuarioValidator {
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(Constantes.MSG_SALARY_NULL)))
                 .flatMap(salario -> {
                     if (salario.compareTo(SALARIO_MINIMO) < 0 || salario.compareTo(SALARIO_MAXIMO) > 0) {
-                        return Mono.error(new IllegalArgumentException(
+                        return Mono.error(new BusinessRuleException(
                                 Constantes.MSG_SALARY_RANGE + SALARIO_MINIMO.toPlainString() + " y " + SALARIO_MAXIMO.toPlainString()
                         ));
                     }

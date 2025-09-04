@@ -9,6 +9,7 @@ import co.com.pragma.api.util.RequestValidator;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
+import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class Handler {
     private final RolMapper rolMapper;
     private final RequestValidator requestValidator;
     private final LogGateway logGateway;
+
 
     public Mono<ServerResponse> registrarUsuario(ServerRequest request) {
         return request.bodyToMono(UsuarioRegistroRequestDto.class)
@@ -77,6 +79,12 @@ public class Handler {
                         validationRequest.email()))
                 .then(ServerResponse.ok().build())
                 .doOnSuccess(response -> logGateway.info("Handler", "Validación de existencia completada"))
-                .doOnError(error -> logGateway.error("Handler", "Error validando existencia: " + error.getMessage(), error));
+                .doOnError(error -> {
+                    if (error instanceof UsuarioNotFoundException) {
+                        logGateway.info("Handler", "Usuario no encontrado durante validación: " + error.getMessage());
+                    } else {
+                        logGateway.error("Handler", "Error validando existencia: " + error.getMessage(), error);
+                    }
+                });
     }
 }

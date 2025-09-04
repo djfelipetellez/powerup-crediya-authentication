@@ -53,14 +53,18 @@ class ConfigTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private LogGateway loggingGateway;
+    private LogGateway logGateway;
 
     @BeforeEach
     void setUp() {
-        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, loggingGateway);
+        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
 
-        UsuarioPath usuarioPath = new UsuarioPath("/api/v1/usuarios", "/api/v1/usuarios/validar-existencia");
-        RolPath rolPath = new RolPath("/api/v1/roles");
+        UsuarioPath usuarioPath = new UsuarioPath();
+        usuarioPath.setBase("/api/v1/usuarios");
+        usuarioPath.setValidarExistenciaUsuario("/api/v1/usuarios/validar-existencia");
+
+        RolPath rolPath = new RolPath();
+        rolPath.setRoles("/api/v1/roles");
 
         RouterRest routerRest = new RouterRest(usuarioPath, rolPath);
 
@@ -98,12 +102,12 @@ class ConfigTest {
 
     @Test
     void usuarioEndpoint_ShouldApplySecurityHeaders() {
-        // Setup mocks específicos para este test
+        // Arrange
         setupUsuarioMocks();
-
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
                 "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
 
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/usuarios")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -122,11 +126,11 @@ class ConfigTest {
 
     @Test
     void rolEndpoint_ShouldApplySecurityHeaders() {
-        // Setup mocks específicos para este test
+        // Arrange
         setupRolMocks();
-
         RolRegistroRequestDto requestDto = new RolRegistroRequestDto("test", "test");
 
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/roles")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -145,12 +149,12 @@ class ConfigTest {
 
     @Test
     void corsConfigurationShouldWork() {
-        // Setup mocks específicos para este test
+        // Arrange
         setupUsuarioMocks();
-
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
                 "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
 
+        // Act & Assert
         webTestClient.post()
                 .uri("/api/v1/usuarios")
                 .header("Origin", "http://localhost:3000")
