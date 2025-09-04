@@ -5,7 +5,7 @@ import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.model.usuario.Usuario;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {RolMapper.class})
 public interface UsuarioMapper {
 
     default Usuario toDomain(UsuarioRegistroRequestDto requestDto) {

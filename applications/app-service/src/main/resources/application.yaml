@@ -28,3 +28,11 @@ management:
         enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
+# API Paths Configuration
+api:
+  paths:
+    usuarios: "/api/v1/usuarios"
+    roles: "/api/v1/roles"
+    validacion:
+      validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"

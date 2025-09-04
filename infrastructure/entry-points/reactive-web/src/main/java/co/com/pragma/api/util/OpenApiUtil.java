@@ -1,164 +1,88 @@
 package co.com.pragma.api.util;
 
-import io.swagger.v3.oas.models.*;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.media.ArraySchema;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.ObjectSchema;
-import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.RequestBody;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import co.com.pragma.api.dto.*;
+import lombok.experimental.UtilityClass;
+import org.springdoc.core.fn.builders.operation.Builder;
+import org.springframework.http.MediaType;
+import org.springframework.web.ErrorResponse;
 
-@Component
+import static co.com.pragma.api.util.ApiConstantes.*;
+import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder;
+import static org.springdoc.core.fn.builders.content.Builder.contentBuilder;
+import static org.springdoc.core.fn.builders.requestbody.Builder.requestBodyBuilder;
+import static org.springdoc.core.fn.builders.schema.Builder.schemaBuilder;
+
+@UtilityClass
 public class OpenApiUtil {
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        // --- Components con schemas ---
-        Components components = new Components()
-                // DTOs
-                .addSchemas("UsuarioRegistroRequestDto", new ObjectSchema()
-                        .addProperty(ApiConstantes.NOMBRE_PROPERTY, new Schema<>().type("string").example("Juan"))
-                        .addProperty("apellido", new Schema<>().type("string").example("Pérez"))
-                        .addProperty("email", new Schema<>().type("string").example("juan@correo.com"))
-                        .addProperty("documentoIdentidad", new Schema<>().type("string").example("12345678"))
-                        .addProperty("telefono", new Schema<>().type("string").example("3001234567"))
-                        .addProperty("salarioBase", new Schema<>().type("number").format("double").example(1500.0))
-                        .addProperty(ApiConstantes.ID_ROLE_PROPERTY, new Schema<>().type("integer").example(1))
-                )
-                .addSchemas("UsuarioResponseDto", new ObjectSchema()
-                        .addProperty("idUsuario", new Schema<>().type("integer").example(1))
-                        .addProperty(ApiConstantes.NOMBRE_PROPERTY, new Schema<>().type("string").example("Juan"))
-                        .addProperty("apellido", new Schema<>().type("string").example("Pérez"))
-                        .addProperty("email", new Schema<>().type("string").example("juan@correo.com"))
-                        .addProperty("documentoIdentidad", new Schema<>().type("string").example("12345678"))
-                        .addProperty("telefono", new Schema<>().type("string").example("3001234567"))
-                        .addProperty("salarioBase", new Schema<>().type("number").format("double").example(1500.0))
-                        .addProperty("rol", new ObjectSchema()
-                                .addProperty(ApiConstantes.ID_ROLE_PROPERTY, new Schema<>().type("integer").example(1))
-                                .addProperty(ApiConstantes.NOMBRE_PROPERTY, new Schema<>().type("string").example(ApiConstantes.USUARIO_PROPERTY))
-                                .addProperty(ApiConstantes.DESCRIPTION_PROPERTY, new Schema<>().type("string").example(ApiConstantes.DESCRIPTION_PROPERTY))
-                        )
-                )
-                .addSchemas("RolRegistroRequestDto", new ObjectSchema()
-                        .addProperty(ApiConstantes.NOMBRE_PROPERTY, new Schema<>().type("string").example(ApiConstantes.USUARIO_PROPERTY))
-                        .addProperty(ApiConstantes.DESCRIPTION_PROPERTY, new Schema<>().type("string").example(ApiConstantes.DESCRIPTION_PROPERTY))
-                )
-                .addSchemas("RoleResponseDto", new ObjectSchema()
-                        .addProperty(ApiConstantes.ID_ROLE_PROPERTY, new Schema<>().type("integer").example(1))
-                        .addProperty(ApiConstantes.NOMBRE_PROPERTY, new Schema<>().type("string").example(ApiConstantes.USUARIO_PROPERTY))
-                        .addProperty(ApiConstantes.DESCRIPTION_PROPERTY, new Schema<>().type("string").example(ApiConstantes.DESCRIPTION_PROPERTY))
-                )
-                // Error Responses
-                .addSchemas("UsuarioGenericErrorResponse", new ObjectSchema()
-                        .addProperty(ApiConstantes.KEY_STATUS, new Schema<>().type("integer").example(500))
-                        .addProperty(ApiConstantes.KEY_ERROR, new Schema<>().type("string").example("Internal Server Error"))
-                        .addProperty(ApiConstantes.KEY_PATH, new Schema<>().type("string").example(ApiConstantes.PATH_USUARIOS))
-                        .addProperty(ApiConstantes.KEY_MESSAGE, new Schema<>().type("string").example(ApiConstantes.MSG_UNEXPECTED_ERROR))
-                )
-                .addSchemas("RolGenericErrorResponse", new ObjectSchema()
-                        .addProperty(ApiConstantes.KEY_STATUS, new Schema<>().type("integer").example(500))
-                        .addProperty(ApiConstantes.KEY_ERROR, new Schema<>().type("string").example("Internal Server Error"))
-                        .addProperty(ApiConstantes.KEY_PATH, new Schema<>().type("string").example(ApiConstantes.PATH_ROLES))
-                        .addProperty(ApiConstantes.KEY_MESSAGE, new Schema<>().type("string").example(ApiConstantes.MSG_UNEXPECTED_ERROR))
-                )
-                .addSchemas("ValidationErrorResponse", new ObjectSchema()
-                        .addProperty(ApiConstantes.KEY_STATUS, new Schema<>().type("integer").example(400))
-                        .addProperty(ApiConstantes.KEY_ERROR, new Schema<>().type("string").example("Bad Request"))
-                        .addProperty(ApiConstantes.KEY_PATH, new Schema<>().type("string").example(ApiConstantes.PATH_USUARIOS))
-                        .addProperty(ApiConstantes.KEY_MESSAGE, new Schema<>().type("string").example(ApiConstantes.VALIDATION_ERROR))
-                        .addProperty(ApiConstantes.KEY_ERRORS, new ArraySchema().items(new Schema<>().type("string")).example("email: El correo es obligatorio"))
-                );
-
-        // --- Paths ---
-        Paths paths = new Paths();
-
-        // Endpoint Usuario
-        Operation opUsuario = new Operation()
-                .operationId(ApiConstantes.OP_REGISTRAR_USUARIO)
-                .summary(ApiConstantes.SUMMARY_REGISTRAR_USUARIO)
-                .description(ApiConstantes.DESC_REGISTRAR_USUARIO)
-                .addTagsItem(ApiConstantes.TAG_USUARIOS)
-                .requestBody(new RequestBody()
-                        .description("Datos para registrar usuario")
+    public Builder registrarUsuario(Builder builder) {
+        return builder
+                .operationId(OP_REGISTRAR_USUARIO)
+                .description(DESC_REGISTRAR_USUARIO)
+                .tag(TAG_USUARIOS)
+                .requestBody(requestBodyBuilder()
                         .required(true)
-                        .content(new Content().addMediaType("application/json",
-                                new io.swagger.v3.oas.models.media.MediaType()
-                                        .schema(new Schema<>().$ref("#/components/schemas/UsuarioRegistroRequestDto"))
-                        ))
-                )
-                .responses(new ApiResponses()
-                        .addApiResponse("201", new ApiResponse()
-                                .description(ApiConstantes.MSG_200) // Assuming 201 is created
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/UsuarioResponseDto"))
-                                ))
-                        )
-                        .addApiResponse("400", new ApiResponse()
-                                .description(ApiConstantes.MSG_400)
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/ValidationErrorResponse"))
-                                ))
-                        )
-                        .addApiResponse("500", new ApiResponse()
-                                .description(ApiConstantes.MSG_500)
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/UsuarioGenericErrorResponse"))
-                                ))
-                        )
-                );
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(UsuarioRegistroRequestDto.class))))
+                .response(responseBuilder().responseCode("201").description("Usuario creado exitosamente")
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(UsuarioResponseDto.class))))
+                .response(responseBuilder().responseCode("400").description(MSG_400)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))));
+    }
 
-        paths.addPathItem(ApiConstantes.PATH_USUARIOS, new PathItem().post(opUsuario));
-
-        // Endpoint Rol
-        Operation opRol = new Operation()
-                .operationId(ApiConstantes.OP_REGISTRAR_ROL)
-                .summary(ApiConstantes.SUMMARY_REGISTRAR_ROL)
-                .description(ApiConstantes.DESC_REGISTRAR_ROL)
-                .addTagsItem(ApiConstantes.TAG_ROLES)
-                .requestBody(new RequestBody()
-                        .description("Datos para registrar rol")
+    public Builder registrarRol(Builder builder) {
+        return builder
+                .operationId(OP_REGISTRAR_ROL)
+                .description(DESC_REGISTRAR_ROL)
+                .tag(TAG_ROLES)
+                .requestBody(requestBodyBuilder()
                         .required(true)
-                        .content(new Content().addMediaType("application/json",
-                                new io.swagger.v3.oas.models.media.MediaType()
-                                        .schema(new Schema<>().$ref("#/components/schemas/RolRegistroRequestDto"))
-                        ))
-                )
-                .responses(new ApiResponses()
-                        .addApiResponse("201", new ApiResponse()
-                                .description(ApiConstantes.MSG_200) // Assuming 201 is created
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/RoleResponseDto"))
-                                ))
-                        )
-                        .addApiResponse("400", new ApiResponse()
-                                .description(ApiConstantes.MSG_400)
-                        )
-                        .addApiResponse("500", new ApiResponse()
-                                .description(ApiConstantes.MSG_500)
-                                .content(new Content().addMediaType("application/json",
-                                        new io.swagger.v3.oas.models.media.MediaType()
-                                                .schema(new Schema<>().$ref("#/components/schemas/RolGenericErrorResponse"))
-                                ))
-                        )
-                );
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(RolRegistroRequestDto.class))))
+                .response(responseBuilder().responseCode("201").description("Rol creado exitosamente")
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(RoleResponseDto.class))))
+                .response(responseBuilder().responseCode("400").description(MSG_400)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))));
+    }
 
-        paths.addPathItem(ApiConstantes.PATH_ROLES, new PathItem().post(opRol));
+    public Builder validarUsuarioExiste(Builder builder) {
+        return builder
+                .operationId("validarUsuarioExiste")
+                .description("Valida si existe un usuario por documento de identidad")
+                .tag(TAG_USUARIOS)
+                .response(responseBuilder().responseCode("200").description("Estado de existencia del usuario")
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(Boolean.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))));
+    }
 
-        // --- OpenAPI ---
-        return new OpenAPI()
-                .info(new Info()
-                        .title(ApiConstantes.TITLE_APP)
-                        .version(ApiConstantes.VERSION_APP)
-                        .description("Documentación del " + ApiConstantes.TITLE_APP))
-                .components(components)
-                .paths(paths);
+    public Builder validarDatosUsuario(Builder builder) {
+        return builder
+                .operationId("validarDatosUsuario")
+                .description("Valida los datos de un usuario existente")
+                .tag(TAG_USUARIOS)
+                .requestBody(requestBodyBuilder()
+                        .required(true)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ClienteValidationRequest.class))))
+                .response(responseBuilder().responseCode("200").description("Datos validados correctamente"))
+                .response(responseBuilder().responseCode("400").description(MSG_400)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))));
     }
 }

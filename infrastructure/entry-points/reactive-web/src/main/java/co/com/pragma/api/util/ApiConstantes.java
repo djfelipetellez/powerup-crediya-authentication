@@ -6,20 +6,9 @@ import lombok.experimental.UtilityClass;
 public final class ApiConstantes {
 
     // OPEN API CONSTANTES
-    public static final String TITLE_APP = "API AUTENTICACION";
-    public static final String VERSION_APP = "1.0";
-
-    // --- Paths ---
-    public static final String PATH_USUARIOS = "/api/v1/usuarios";
-    public static final String PATH_ROLES = "/api/v1/roles";
-
     // --- Operation IDs ---
     public static final String OP_REGISTRAR_USUARIO = "registrarUsuario";
     public static final String OP_REGISTRAR_ROL = "registrarRol";
-
-    // --- Summaries ---
-    public static final String SUMMARY_REGISTRAR_USUARIO = "Registrar usuario";
-    public static final String SUMMARY_REGISTRAR_ROL = "Registrar rol";
 
     // --- Descriptions ---
     public static final String DESC_REGISTRAR_USUARIO = "Crea un nuevo usuario en el sistema";
@@ -31,13 +20,9 @@ public final class ApiConstantes {
 
     // --- Mensajes open api genericos ---
     public static final String MSG_200 = "Operación exitosa";
+    public static final String MSG_201 = "Recurso creado exitosamente";
     public static final String MSG_400 = "Petición inválida";
     public static final String MSG_500 = "Error interno del servidor";
-
-    public static final String USUARIO_PROPERTY = "ADMIN";
-    public static final String NOMBRE_PROPERTY = "nombre";
-    public static final String ID_ROLE_PROPERTY = "idRol";
-    public static final String DESCRIPTION_PROPERTY = "descripcion";
 
     // LOGGING CONSTANTES
     public static final String LOG_GLOBAL_EXCEPTION_HANDLER = "GlobalExceptionHandling";

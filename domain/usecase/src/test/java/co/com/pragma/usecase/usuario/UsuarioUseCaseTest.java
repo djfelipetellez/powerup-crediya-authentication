@@ -1,8 +1,9 @@
 package co.com.pragma.usecase.usuario;
 
 import co.com.pragma.model.common.Constantes;
-import co.com.pragma.model.common.gateways.LoggingGateway;
-import co.com.pragma.model.rol.gateways.RolValidator;
+import co.com.pragma.model.common.gateways.LogGateway;
+import co.com.pragma.model.rol.Rol;
+import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioValidator;
@@ -15,8 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -27,13 +27,13 @@ class UsuarioUseCaseTest {
     private UsuarioRepository usuarioRepository;
 
     @Mock
-    private RolValidator rolValidator;
+    private RolRepository rolRepository;
 
     @Mock
     private UsuarioValidator usuarioValidator;
 
     @Mock
-    private LoggingGateway loggingGateway;
+    private LogGateway loggingGateway;
 
     @InjectMocks
     private UsuarioUseCase usuarioUseCase;
@@ -57,7 +57,7 @@ class UsuarioUseCaseTest {
         // Arrange
         doNothing().when(loggingGateway).info(any(), any());
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
-        when(rolValidator.validarRolExiste(anyInt())).thenReturn(Mono.empty());
+        when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
 
         // Act & Assert
@@ -76,7 +76,7 @@ class UsuarioUseCaseTest {
         StepVerifier.create(usuarioUseCase.registrarUsuario(null, roleId))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(Constantes.MSG_USUARIO_NULL)
+                                error.getMessage().equals(Constantes.MSG_USUARIO_NULL)
                 )
                 .verify();
     }
@@ -89,7 +89,7 @@ class UsuarioUseCaseTest {
         when(usuarioValidator.validate(any(Usuario.class), anyInt()))
                 .thenReturn(Mono.error(new IllegalArgumentException("Invalid user data")));
         // Mock subsequent calls in the chain to prevent NullPointerException during stream assembly
-        when(rolValidator.validarRolExiste(anyInt())).thenReturn(Mono.empty());
+        when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
 
 
@@ -97,7 +97,7 @@ class UsuarioUseCaseTest {
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals("Invalid user data")
+                                error.getMessage().equals("Invalid user data")
                 )
                 .verify();
     }
@@ -108,8 +108,8 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).info(any(), any());
         doNothing().when(loggingGateway).error(any(), any(), any(Throwable.class));
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
-        when(rolValidator.validarRolExiste(anyInt()))
-                .thenReturn(Mono.error(new IllegalArgumentException(Constantes.MSG_ROLE_NOT_EXISTS)));
+        when(rolRepository.findById(anyInt()))
+                .thenReturn(Mono.empty());
         // Mock subsequent calls in the chain to prevent NullPointerException during stream assembly
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
 
@@ -117,7 +117,7 @@ class UsuarioUseCaseTest {
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(Constantes.MSG_ROLE_NOT_EXISTS)
+                                error.getMessage().equals(Constantes.MSG_ROLE_NOT_EXISTS)
                 )
                 .verify();
     }
@@ -128,7 +128,7 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).info(any(), any());
         doNothing().when(loggingGateway).error(any(), any(), any(Throwable.class));
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
-        when(rolValidator.validarRolExiste(anyInt())).thenReturn(Mono.empty());
+        when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt()))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
@@ -136,7 +136,46 @@ class UsuarioUseCaseTest {
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId))
                 .expectErrorMatches(error ->
                         error instanceof RuntimeException &&
-                        error.getMessage().equals("Database error")
+                                error.getMessage().equals("Database error")
+                )
+                .verify();
+    }
+
+    @Test
+    void validarExistenciaUsuario_Success() {
+        // Arrange
+        String documentoIdentidad = "123456789";
+        String email = "test@test.com";
+        Usuario usuarioMock = Usuario.builder()
+                .documentoIdentidad(documentoIdentidad)
+                .email(email)
+                .build();
+
+        doNothing().when(loggingGateway).info(any(), any());
+        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .thenReturn(Mono.just(usuarioMock));
+
+        // Act & Assert
+        StepVerifier.create(usuarioUseCase.validarExistenciaUsuario(documentoIdentidad, email))
+                .verifyComplete();
+    }
+
+    @Test
+    void validarExistenciaUsuario_UserNotFound() {
+        // Arrange
+        String documentoIdentidad = "123456789";
+        String email = "test@test.com";
+
+        doNothing().when(loggingGateway).info(any(), any());
+        doNothing().when(loggingGateway).error(any(), any(), any(Throwable.class));
+        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .thenReturn(Mono.empty());
+
+        // Act & Assert
+        StepVerifier.create(usuarioUseCase.validarExistenciaUsuario(documentoIdentidad, email))
+                .expectErrorMatches(error ->
+                        error instanceof IllegalArgumentException &&
+                                error.getMessage().contains("Usuario no encontrado con documento: " + documentoIdentidad + " y email: " + email)
                 )
                 .verify();
     }

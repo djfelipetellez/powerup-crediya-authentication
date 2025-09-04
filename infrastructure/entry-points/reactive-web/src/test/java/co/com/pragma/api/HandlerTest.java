@@ -1,12 +1,13 @@
 package co.com.pragma.api;
 
+import co.com.pragma.api.dto.ClienteValidationRequest;
 import co.com.pragma.api.dto.RolRegistroRequestDto;
 import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
-import co.com.pragma.model.common.gateways.LoggingGateway;
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.usecase.rol.RolUseCase;
@@ -48,7 +49,7 @@ class HandlerTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private LoggingGateway loggingGateway;
+    private LogGateway loggingGateway;
 
     @Mock
     private ServerRequest serverRequest;
@@ -94,5 +95,36 @@ class HandlerTest {
                 .as(StepVerifier::create)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.CREATED))
                 .verifyComplete();
+    }
+
+    @Test
+    void validarExistenciaUsuario_Success() {
+        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+
+        when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
+        when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
+        when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com"))).thenReturn(Mono.empty());
+        doNothing().when(loggingGateway).info(any(), any());
+
+        handler.validarExistenciaUsuario(serverRequest)
+                .as(StepVerifier::create)
+                .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
+    }
+
+    @Test
+    void validarExistenciaUsuario_UserNotFound() {
+        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+
+        when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
+        when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
+        when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com")))
+                .thenReturn(Mono.error(new IllegalArgumentException("Usuario no encontrado")));
+        doNothing().when(loggingGateway).error(any(), any(), any());
+
+        handler.validarExistenciaUsuario(serverRequest)
+                .as(StepVerifier::create)
+                .expectError(IllegalArgumentException.class)
+                .verify();
     }
 }

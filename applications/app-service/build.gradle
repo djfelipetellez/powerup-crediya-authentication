@@ -1,8 +1,8 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-	implementation project(':log-util')
-
+    implementation project(':log-util')
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation project(':reactive-web')
     implementation project(':r2dbc-mysql')
     implementation 'org.reactivecommons.utils:object-mapper:0.1.0'

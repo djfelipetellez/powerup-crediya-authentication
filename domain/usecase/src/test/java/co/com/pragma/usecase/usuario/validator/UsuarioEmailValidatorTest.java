@@ -52,10 +52,10 @@ class UsuarioEmailValidatorTest {
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(Constantes.MSG_EMAIL_DUPLICATE)
+                                error.getMessage().equals(Constantes.MSG_EMAIL_DUPLICATE)
                 )
                 .verify();
     }
 
-    
+
 }

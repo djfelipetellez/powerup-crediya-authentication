@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 public class UsuarioEmailValidator implements UsuarioValidator {
-    
+
     private final UsuarioRepository usuarioRepository;
-    
+
     @Override
     public Mono<Void> validate(Usuario usuario, Integer roleId) {
         return usuarioRepository.findByEmail(usuario.getEmail())

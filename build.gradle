@@ -4,9 +4,8 @@ buildscript {
         springBootVersion = '3.5.4'
         sonarVersion = '6.2.0.5505'
         jacocoVersion = '0.8.13'
-        pitestVersion = '1.19.0-rc.1'
         lombokVersion = '1.18.38'
-        mapstructVersion = '1.6.3'
+        mapstructVersion = '1.5.5.Final'
         openApiVersion = '2.6.0'
     }
 }
@@ -14,9 +13,9 @@ buildscript {
 plugins {
     id 'co.com.bancolombia.cleanArchitecture' version "${cleanArchitectureVersion}"
     id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id 'info.solidsoft.pitest' version "${pitestVersion}" apply false
     id 'org.sonarqube' version "${sonarVersion}"
     id 'jacoco'
+    id 'info.solidsoft.pitest' version '1.15.0' apply false
 }
 
 sonar {

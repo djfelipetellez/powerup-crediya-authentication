@@ -317,6 +317,12 @@ class UsuarioReactiveRepositoryAdapterTest {
     void registrarUsuarioCompleto_shouldRegisterUser_whenRoleExists() {
         // Arrange
         Integer roleId = 2;
+        RolEntity rolEntity = RolEntity.builder()
+                .idRol(roleId)
+                .nombre("USER")
+                .descripcion("User role")
+                .build();
+
         UsuarioEntity savedEntity = UsuarioEntity.builder()
                 .idUsuario(1)
                 .nombre("Juan")
@@ -328,23 +334,52 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(roleId) // roleId assigned
                 .build();
 
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
 
         // Act & Assert
         StepVerifier.create(adapter.registrarUsuarioCompleto(usuario, roleId))
                 .expectNextMatches(registered ->
                         registered.getEmail().equals(usuario.getEmail()) &&
-                                registered.getRol().getIdRol().equals(2)
+                                registered.getRol().getIdRol().equals(2) &&
+                                registered.getRol().getNombre().equals("USER") &&
+                                registered.getRol().getDescripcion().equals("User role")
                 )
                 .verifyComplete();
 
+        verify(rolRepository).findById(roleId);
         verify(usuarioRepository).save(any(UsuarioEntity.class));
+    }
+
+    @Test
+    void registrarUsuarioCompleto_shouldThrowError_whenRoleNotFound() {
+        // Arrange
+        Integer roleId = 999;
+        when(rolRepository.findById(roleId)).thenReturn(Mono.empty());
+
+        // Act & Assert
+        StepVerifier.create(adapter.registrarUsuarioCompleto(usuario, roleId))
+                .expectErrorMatches(throwable ->
+                        throwable instanceof IllegalArgumentException &&
+                                throwable.getMessage().equals("Rol no encontrado con ID: " + roleId)
+                )
+                .verify();
+
+        verify(rolRepository).findById(roleId);
+        verify(usuarioRepository, never()).save(any(UsuarioEntity.class));
     }
 
     @Test
     void registrarUsuarioCompleto_shouldHandleRepositoryError() {
         // Arrange
         Integer roleId = 2;
+        RolEntity rolEntity = RolEntity.builder()
+                .idRol(roleId)
+                .nombre("USER")
+                .descripcion("User role")
+                .build();
+
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
         when(usuarioRepository.save(any(UsuarioEntity.class)))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
@@ -353,6 +388,7 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .expectError(RuntimeException.class)
                 .verify();
 
+        verify(rolRepository).findById(roleId);
         verify(usuarioRepository).save(any(UsuarioEntity.class));
     }
 
@@ -371,6 +407,12 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .rol(null) // Sin rol inicial
                 .build();
 
+        RolEntity rolEntity = RolEntity.builder()
+                .idRol(roleId)
+                .nombre("USER")
+                .descripcion("User role")
+                .build();
+
         UsuarioEntity savedEntity = UsuarioEntity.builder()
                 .idUsuario(1)
                 .nombre("Juan")
@@ -382,16 +424,20 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(roleId) // roleId assigned
                 .build();
 
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
 
         // Act & Assert
         StepVerifier.create(adapter.registrarUsuarioCompleto(usuarioSinRolInicial, roleId))
                 .expectNextMatches(registered ->
                         registered.getEmail().equals(usuarioSinRolInicial.getEmail()) &&
-                                registered.getRol().getIdRol().equals(2)
+                                registered.getRol().getIdRol().equals(2) &&
+                                registered.getRol().getNombre().equals("USER") &&
+                                registered.getRol().getDescripcion().equals("User role")
                 )
                 .verifyComplete();
 
+        verify(rolRepository).findById(roleId);
         verify(usuarioRepository).save(any(UsuarioEntity.class));
     }
 
@@ -435,5 +481,89 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .verifyComplete();
 
         verify(usuarioRepository).save(any(UsuarioEntity.class));
+    }
+
+    // ========== PRUEBAS PARA FINDBYDOCUMENTOIDENTIDADANDEMAIL ==========
+
+    @Test
+    void findByDocumentoIdentidadAndEmail_shouldReturnUsuario_whenFound() {
+        // Arrange
+        String documentoIdentidad = "12345678";
+        String email = "juan.perez@example.com";
+
+        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .thenReturn(Mono.just(usuarioEntity));
+        when(rolRepository.findById(1)).thenReturn(Mono.just(rolEntity));
+
+        // Act & Assert
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .expectNextMatches(found ->
+                        found.getDocumentoIdentidad().equals(documentoIdentidad) &&
+                                found.getEmail().equals(email) &&
+                                found.getRol().getIdRol().equals(1)
+                )
+                .verifyComplete();
+
+        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(rolRepository).findById(1);
+    }
+
+    @Test
+    void findByDocumentoIdentidadAndEmail_shouldReturnEmpty_whenUserNotFound() {
+        // Arrange
+        String documentoIdentidad = "nonexistent";
+        String email = "nonexistent@example.com";
+
+        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .thenReturn(Mono.empty());
+
+        // Act & Assert
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .verifyComplete();
+
+        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(rolRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    void findByDocumentoIdentidadAndEmail_shouldReturnEmpty_whenParametersAreNull() {
+        // Act & Assert
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(null, "test@example.com"))
+                .verifyComplete();
+
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail("123456789", null))
+                .verifyComplete();
+
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(null, null))
+                .verifyComplete();
+
+        verify(usuarioRepository, never()).findByDocumentoIdentidadAndEmail(anyString(), anyString());
+    }
+
+    @Test
+    void findByDocumentoIdentidadAndEmail_shouldThrowException_whenUserHasNoRol() {
+        // Arrange
+        String documentoIdentidad = "12345678";
+        String email = "juan.perez@example.com";
+        UsuarioEntity usuarioSinRol = UsuarioEntity.builder()
+                .idUsuario(1)
+                .documentoIdentidad(documentoIdentidad)
+                .email(email)
+                .idRol(null)
+                .build();
+
+        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .thenReturn(Mono.just(usuarioSinRol));
+
+        // Act & Assert
+        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+                .expectErrorMatches(throwable ->
+                        throwable instanceof IllegalStateException &&
+                                throwable.getMessage().equals("Usuario encontrado sin rol asignado")
+                )
+                .verify();
+
+        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(rolRepository, never()).findById(anyInt());
     }
 }

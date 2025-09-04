@@ -1,13 +1,12 @@
 package co.com.pragma.api;
 
-import co.com.pragma.api.dto.RolRegistroRequestDto;
-import co.com.pragma.api.dto.RoleResponseDto;
-import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
-import co.com.pragma.api.dto.UsuarioResponseDto;
+import co.com.pragma.api.config.RolPath;
+import co.com.pragma.api.config.UsuarioPath;
+import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
-import co.com.pragma.model.common.gateways.LoggingGateway;
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.usecase.rol.RolUseCase;
@@ -51,18 +50,22 @@ class RouterRestTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private LoggingGateway loggingGateway;
+    private LogGateway loggingGateway;
 
     @BeforeEach
     void setUp() {
         Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, loggingGateway);
 
-        RouterRest routerRest = new RouterRest();
+        UsuarioPath usuarioPath = new UsuarioPath("/api/v1/usuarios", "/api/v1/usuarios/validar-existencia");
+        RolPath rolPath = new RolPath("/api/v1/roles");
+
+        RouterRest routerRest = new RouterRest(usuarioPath, rolPath);
 
         // Combinar las RouterFunctions separadas como en tu implementación real
         RouterFunction<ServerResponse> usuarioRoutes = routerRest.usuarioRoutes(handler);
         RouterFunction<ServerResponse> rolRoutes = routerRest.rolRoutes(handler);
-        RouterFunction<ServerResponse> allRoutes = usuarioRoutes.and(rolRoutes);
+        RouterFunction<ServerResponse> validacionRoutes = routerRest.validacionRoutes(handler);
+        RouterFunction<ServerResponse> allRoutes = usuarioRoutes.and(rolRoutes).and(validacionRoutes);
 
         webTestClient = WebTestClient
                 .bindToRouterFunction(allRoutes)
@@ -112,6 +115,44 @@ class RouterRestTest {
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody(RoleResponseDto.class)
                 .isEqualTo(roleResponseDto);
+    }
+
+    @Test
+    void validarExistenciaUsuarioTest() {
+        // Given
+        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+
+        given(requestValidator.validate(any(ClienteValidationRequest.class)))
+                .willReturn(Mono.just(requestDto));
+        given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
+                .willReturn(Mono.empty());
+
+        // When & Then
+        webTestClient.post()
+                .uri("/api/v1/usuarios/validar-existencia")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(requestDto))
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
+    void validarExistenciaUsuarioTest_UserNotFound() {
+        // Given
+        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+
+        given(requestValidator.validate(any(ClienteValidationRequest.class)))
+                .willReturn(Mono.just(requestDto));
+        given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
+                .willReturn(Mono.error(new IllegalArgumentException("Usuario no encontrado")));
+
+        // When & Then
+        webTestClient.post()
+                .uri("/api/v1/usuarios/validar-existencia")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(requestDto))
+                .exchange()
+                .expectStatus().is5xxServerError();
     }
 
     // Métodos helper para crear objetos mock

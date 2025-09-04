@@ -15,17 +15,15 @@ public class RolReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         Integer,
         RolReactiveRepository> implements RolRepository {
 
-    private final RolReactiveRepository rolRepository;
 
     public RolReactiveRepositoryAdapter(RolReactiveRepository repository, ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, Rol.class));
-        this.rolRepository = repository;
         this.mapper = mapper;
     }
 
     @Override
     public Mono<Rol> findById(Integer id) {
-        return rolRepository.findById(id)
+        return repository.findById(id)
                 .map(entity -> Rol.builder()
                         .idRol(entity.getIdRol())
                         .nombre(entity.getNombre())
@@ -40,7 +38,7 @@ public class RolReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         rolEntity.setNombre(rol.getNombre());
         rolEntity.setDescripcion(rol.getDescripcion());
 
-        return rolRepository.save(rolEntity)
+        return repository.save(rolEntity)
                 .map(savedEntity -> Rol.builder()
                         .idRol(savedEntity.getIdRol())
                         .nombre(savedEntity.getNombre())

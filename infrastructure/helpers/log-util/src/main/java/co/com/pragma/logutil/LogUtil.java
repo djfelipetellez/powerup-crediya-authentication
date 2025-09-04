@@ -1,15 +1,12 @@
-package util;
+package co.com.pragma.logutil;
 
+import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public final class LoggingUtil {
-
-    private static final Logger logger = LogManager.getLogger(LoggingUtil.class);
-
-    private LoggingUtil() {
-        throw new IllegalStateException("Utility class");
-    }
+@UtilityClass
+public class LogUtil {
+    private static final Logger logger = LogManager.getLogger(LogUtil.class);
 
     public static void info(String action, Object details) {
         logger.info("[ACTION: {}] - {}", action, details);

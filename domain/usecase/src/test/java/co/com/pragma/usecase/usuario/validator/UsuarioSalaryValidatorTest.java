@@ -63,7 +63,7 @@ class UsuarioSalaryValidatorTest {
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(Constantes.MSG_SALARY_NULL)
+                                error.getMessage().equals(Constantes.MSG_SALARY_NULL)
                 )
                 .verify();
     }
@@ -78,7 +78,7 @@ class UsuarioSalaryValidatorTest {
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(expectedMessage)
+                                error.getMessage().equals(expectedMessage)
                 )
                 .verify();
     }
@@ -93,7 +93,7 @@ class UsuarioSalaryValidatorTest {
         StepVerifier.create(validator.validate(usuario, 1))
                 .expectErrorMatches(error ->
                         error instanceof IllegalArgumentException &&
-                        error.getMessage().equals(expectedMessage)
+                                error.getMessage().equals(expectedMessage)
                 )
                 .verify();
     }

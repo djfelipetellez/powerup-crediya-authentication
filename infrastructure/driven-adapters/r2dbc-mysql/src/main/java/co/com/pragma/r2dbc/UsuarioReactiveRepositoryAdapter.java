@@ -18,13 +18,11 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         UsuarioReactiveRepository
         > implements UsuarioRepository {
 
-    private final UsuarioReactiveRepository usuarioRepository;
     private final RolReactiveRepository rolRepository;
 
     public UsuarioReactiveRepositoryAdapter(UsuarioReactiveRepository repository, RolReactiveRepository rolRepository
             , ObjectMapper mapper) {
         super(repository, mapper, d -> mapper.map(d, Usuario.class));
-        this.usuarioRepository = repository;
         this.rolRepository = rolRepository;
     }
 
@@ -46,7 +44,7 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                 .idRol(usuario.getRol().getIdRol())
                 .build();
 
-        return usuarioRepository.save(entity)
+        return repository.save(entity)
                 .map(savedEntity -> Usuario.builder()
                         .idUsuario(savedEntity.getIdUsuario())
                         .nombre(savedEntity.getNombre())
@@ -65,7 +63,37 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         if (email == null) {
             return Mono.empty();
         }
-        return usuarioRepository.findByEmail(email)
+        return repository.findByEmail(email)
+                .flatMap(entity -> {
+                    if (entity.getIdRol() != null) {
+                        return rolRepository.findById(entity.getIdRol())
+                                .map(rolEntity -> Usuario.builder()
+                                        .idUsuario(entity.getIdUsuario())
+                                        .nombre(entity.getNombre())
+                                        .apellido(entity.getApellido())
+                                        .email(entity.getEmail())
+                                        .documentoIdentidad(entity.getDocumentoIdentidad())
+                                        .telefono(entity.getTelefono())
+                                        .salarioBase(entity.getSalarioBase())
+                                        .rol(Rol.builder()
+                                                .idRol(rolEntity.getIdRol())
+                                                .nombre(rolEntity.getNombre())
+                                                .descripcion(rolEntity.getDescripcion())
+                                                .build())
+                                        .build()
+                                );
+                    } else {
+                        return Mono.error(new IllegalStateException("Usuario encontrado sin rol asignado"));
+                    }
+                });
+    }
+
+    @Override
+    public Mono<Usuario> findByDocumentoIdentidadAndEmail(String documentoIdentidad, String email) {
+        if (documentoIdentidad == null || email == null) {
+            return Mono.empty();
+        }
+        return repository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email)
                 .flatMap(entity -> {
                     if (entity.getIdRol() != null) {
                         return rolRepository.findById(entity.getIdRol())
@@ -93,8 +121,20 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     @Transactional
     public Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId) {
-        // Assume roleId is valid as it's validated by UseCase layer
-        usuario.setRol(Rol.builder().idRol(roleId).build());
-        return save(usuario);
+        return rolRepository.findById(roleId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Rol no encontrado con ID: " + roleId)))
+                .flatMap(rolEntity -> {
+                    Rol rolCompleto = Rol.builder()
+                            .idRol(rolEntity.getIdRol())
+                            .nombre(rolEntity.getNombre())
+                            .descripcion(rolEntity.getDescripcion())
+                            .build();
+
+                    Usuario usuarioConRol = usuario.toBuilder()
+                            .rol(rolCompleto)
+                            .build();
+
+                    return this.save(usuarioConRol);
+                });
     }
 }
