@@ -1,15 +1,18 @@
 package co.com.pragma.api;
 
 import co.com.pragma.api.dto.ClienteValidationRequest;
+import co.com.pragma.api.dto.LoginRequestDto;
 import co.com.pragma.api.dto.RolRegistroRequestDto;
 import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.auth.LoginCredenciales;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
+import co.com.pragma.usecase.auth.LoginAuthenticationUseCase;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +23,15 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Component
 @RequiredArgsConstructor
 public class Handler {
 
     private final UsuarioUseCase usuarioUseCase;
     private final RolUseCase rolUseCase;
+    private final LoginAuthenticationUseCase loginAuthenticationUseCase;
     private final UsuarioMapper usuarioMapper;
     private final RolMapper rolMapper;
     private final RequestValidator requestValidator;
@@ -66,6 +72,36 @@ public class Handler {
                                 return ServerResponse.status(HttpStatus.CREATED)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .bodyValue(rolMapper.toResponseDto(saved));
+                            });
+                });
+    }
+
+    public Mono<ServerResponse> login(ServerRequest request) {
+        return request.bodyToMono(LoginRequestDto.class)
+                .flatMap(requestValidator::validate)
+                .flatMap(loginDto -> {
+                    logGateway.info("login", "Intento de login para email: " + loginDto.email());
+
+                    LoginCredenciales credentials = new LoginCredenciales(loginDto.email(), loginDto.password());
+
+                    return loginAuthenticationUseCase.login(credentials)
+                            .flatMap(tokenAuth -> {
+                                logGateway.info("login", "Login exitoso para email: " + loginDto.email());
+                                return ServerResponse.ok()
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(Map.of(
+                                                "token", tokenAuth.token(),
+                                                "message", "Login exitoso"
+                                        ));
+                            })
+                            .onErrorResume(error -> {
+                                logGateway.error("login", "Error en login: " + error.getMessage(), error);
+                                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(Map.of(
+                                                "error", "Credenciales inválidas",
+                                                "message", error.getMessage()
+                                        ));
                             });
                 });
     }

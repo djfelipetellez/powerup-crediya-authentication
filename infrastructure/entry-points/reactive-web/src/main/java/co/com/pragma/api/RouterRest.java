@@ -33,6 +33,14 @@ public class RouterRest {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> authRoutes(Handler handler) {
+        return route()
+                .POST("/api/v1/login", accept(MediaType.APPLICATION_JSON),
+                        handler::login, OpenApiUtil::login)
+                .build();
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> validacionRoutes(Handler handler) {
         return route()
                 .POST(usuarioPath.getValidarExistenciaUsuario(), accept(MediaType.APPLICATION_JSON),

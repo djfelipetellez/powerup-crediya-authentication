@@ -68,6 +68,26 @@ public class OpenApiUtil {
                                 .schema(schemaBuilder().implementation(ErrorResponse.class))));
     }
 
+    public Builder login(Builder builder) {
+        return builder
+                .operationId("login")
+                .description("Autentica a un usuario y devuelve un token JWT")
+                .tag("Autenticación")
+                .requestBody(requestBodyBuilder()
+                        .required(true)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(LoginRequestDto.class))))
+                .response(responseBuilder().responseCode("200").description("Login exitoso")
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(Object.class))))
+                .response(responseBuilder().responseCode("401").description("Credenciales inválidas")
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder().implementation(ErrorResponse.class))));
+    }
+
     public Builder validarDatosUsuario(Builder builder) {
         return builder
                 .operationId("validarDatosUsuario")

@@ -1,7 +1,7 @@
 package co.com.pragma.usecase.usuario;
 
-import co.com.pragma.model.auth.UserCredential;
-import co.com.pragma.model.auth.gateways.UserCredencialRepository;
+import co.com.pragma.model.auth.UsuarioCredencial;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
@@ -37,7 +37,7 @@ class UsuarioUseCaseTest {
     private UsuarioValidator usuarioValidator;
 
     @Mock
-    private UserCredencialRepository userCredencialRepository;
+    private UsuarioCredencialRepository userCredencialRepository;
 
     @Mock
     private LogGateway loggingGateway;
@@ -68,7 +68,7 @@ class UsuarioUseCaseTest {
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-        when(userCredencialRepository.save(any(UserCredential.class))).thenReturn(Mono.just(UserCredential.builder().build()));
+        when(userCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(UsuarioCredencial.builder().build()));
 
         // Act & Assert
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId, password))
@@ -170,19 +170,19 @@ class UsuarioUseCaseTest {
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-        
-        UserCredential expectedCredential = UserCredential.builder()
+
+        UsuarioCredencial expectedCredential = UsuarioCredencial.builder()
                 .email(usuario.getEmail())
-                .usuarioId(usuario.getIdUsuario())
+                .idUsuario(usuario.getIdUsuario())
                 .active(true)
                 .build();
-        when(userCredencialRepository.save(any(UserCredential.class))).thenReturn(Mono.just(expectedCredential));
+        when(userCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(expectedCredential));
 
         // Act
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId, password))
                 .expectNextMatches(registeredUser -> registeredUser.getEmail().equals("test@pragma.com.co"))
                 .verifyComplete();
-        
+
         // Assert - Verify that credentials were saved
         // This is implicit in the successful completion of the flow
     }
@@ -195,7 +195,7 @@ class UsuarioUseCaseTest {
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
         when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-        when(userCredencialRepository.save(any(UserCredential.class)))
+        when(userCredencialRepository.save(any(UsuarioCredencial.class)))
                 .thenReturn(Mono.error(new RuntimeException("Error saving credentials")));
 
         // Act

@@ -1,6 +1,6 @@
 package co.com.pragma.config;
 
-import co.com.pragma.model.auth.gateways.UserCredencialRepository;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
@@ -32,13 +32,13 @@ public class UseCasesConfig {
     }
 
     @Bean
-    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolRepository rolRepository, UsuarioValidator usuarioValidator, UserCredencialRepository userCredencialRepository, LogGateway logGateway) {
-        return new UsuarioUseCase(usuarioRepository, rolRepository, usuarioValidator, userCredencialRepository, logGateway);
+    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolRepository rolRepository, UsuarioValidator usuarioValidator, UsuarioCredencialRepository usuarioCredencialRepository, LogGateway logGateway) {
+        return new UsuarioUseCase(usuarioRepository, rolRepository, usuarioValidator, usuarioCredencialRepository, logGateway);
     }
 
     @Bean
-    public LoginAuthenticationUseCase loginAuthenticationUseCase(UserCredencialRepository userCredencialRepository, UsuarioRepository usuarioRepository, LogGateway logGateway) {
-        return new LoginAuthenticationUseCase(userCredencialRepository, usuarioRepository, logGateway);
+    public LoginAuthenticationUseCase loginAuthenticationUseCase(UsuarioCredencialRepository usuarioCredencialRepository, UsuarioRepository usuarioRepository, LogGateway logGateway) {
+        return new LoginAuthenticationUseCase(usuarioCredencialRepository, usuarioRepository, logGateway);
     }
 
     @Bean

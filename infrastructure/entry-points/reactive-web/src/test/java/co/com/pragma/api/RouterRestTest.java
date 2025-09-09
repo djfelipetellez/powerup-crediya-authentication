@@ -6,9 +6,11 @@ import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
+import co.com.pragma.usecase.auth.LoginAuthenticationUseCase;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,16 +52,19 @@ class RouterRestTest {
     private RequestValidator requestValidator;
 
     @Mock
-    private co.com.pragma.model.common.gateways.LogGateway logGateway;
+    private LogGateway logGateway;
+
+    @Mock
+    private LoginAuthenticationUseCase loginAuthenticationUseCase;
 
     @BeforeEach
     void setUp() {
-        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
+        Handler handler = new Handler(usuarioUseCase, rolUseCase, loginAuthenticationUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
 
         UsuarioPath usuarioPath = new UsuarioPath();
         usuarioPath.setBase("/api/v1/usuarios");
         usuarioPath.setValidarExistenciaUsuario("/api/v1/usuarios/validar-existencia");
-        
+
         RolPath rolPath = new RolPath();
         rolPath.setRoles("/api/v1/roles");
 
@@ -82,7 +87,7 @@ class RouterRestTest {
     void registrarUsuarioTest() {
         // Arrange
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), "password123", 1);
         Usuario usuario = createUsuarioMock();
         UsuarioResponseDto usuarioResponseDto = createUsuarioResponseDto();
 
@@ -184,7 +189,7 @@ class RouterRestTest {
                 .willReturn(Mono.just(requestDto));
         given(usuarioMapper.toDomain(any(UsuarioRegistroRequestDto.class)))
                 .willReturn(usuario);
-        given(usuarioUseCase.registrarUsuario(any(Usuario.class), anyInt()))
+        given(usuarioUseCase.registrarUsuario(any(Usuario.class), anyInt(), any(String.class)))
                 .willReturn(Mono.just(usuario));
         given(usuarioMapper.toResponseDto(any(Usuario.class)))
                 .willReturn(responseDto);

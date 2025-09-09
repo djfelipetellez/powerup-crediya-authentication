@@ -18,7 +18,7 @@ public class UserCredentialEntity {
     private Integer id;
     private String email;
     private String password;
-    private Integer usuarioId;
+    private Integer idUsuario;
     private LocalDateTime createdAt;
     private LocalDateTime lastLoginAt;
     private boolean active;
