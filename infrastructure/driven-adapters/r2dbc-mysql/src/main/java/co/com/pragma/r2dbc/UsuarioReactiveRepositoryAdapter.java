@@ -59,6 +59,36 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     }
 
     @Override
+    public Mono<Usuario> findById(Integer id) {
+        if (id == null) {
+            return Mono.empty();
+        }
+        return repository.findById(id)
+                .flatMap(entity -> {
+                    if (entity.getIdRol() != null) {
+                        return rolRepository.findById(entity.getIdRol())
+                                .map(rolEntity -> Usuario.builder()
+                                        .idUsuario(entity.getIdUsuario())
+                                        .nombre(entity.getNombre())
+                                        .apellido(entity.getApellido())
+                                        .email(entity.getEmail())
+                                        .documentoIdentidad(entity.getDocumentoIdentidad())
+                                        .telefono(entity.getTelefono())
+                                        .salarioBase(entity.getSalarioBase())
+                                        .rol(Rol.builder()
+                                                .idRol(rolEntity.getIdRol())
+                                                .nombre(rolEntity.getNombre())
+                                                .descripcion(rolEntity.getDescripcion())
+                                                .build())
+                                        .build()
+                                );
+                    } else {
+                        return Mono.error(new IllegalStateException("Usuario encontrado sin rol asignado"));
+                    }
+                });
+    }
+
+    @Override
     public Mono<Usuario> findByEmail(String email) {
         if (email == null) {
             return Mono.empty();

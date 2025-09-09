@@ -62,7 +62,7 @@ class ArchitectureTest {
     static void exportIssues() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List.of("/Users/felipetellezdj/git/powerup-crediya-autenticacion/applications/app-service/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/helpers/log-util/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/usecase/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/driven-adapters/r2dbc-mysql/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/infrastructure/entry-points/reactive-web/","/Users/felipetellezdj/git/powerup-crediya-autenticacion/domain/model/").forEach(path -> {
+            List.of("/Users/felipetellezdj/git/powerup-crediya-authentication/domain/model/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/driven-adapters/r2dbc-mysql/","/Users/felipetellezdj/git/powerup-crediya-authentication/applications/app-service/","/Users/felipetellezdj/git/powerup-crediya-authentication/domain/usecase/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/entry-points/reactive-web/","/Users/felipetellezdj/git/powerup-crediya-authentication/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/helpers/log-util/").forEach(path -> {
                 try {
                     Files.write(Path.of(path, "build/issues.json"), mapper.writeValueAsBytes(issues.getOrDefault(path, new Utils.IssuesReport())));
                 } catch (IOException e) {

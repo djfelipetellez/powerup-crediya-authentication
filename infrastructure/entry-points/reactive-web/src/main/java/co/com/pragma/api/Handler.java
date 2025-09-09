@@ -40,8 +40,9 @@ public class Handler {
 
                     Usuario usuario = usuarioMapper.toDomain(requestDto);
                     Integer idRol = requestDto.idRol();
+                    String password = requestDto.password();
 
-                    return usuarioUseCase.registrarUsuario(usuario, idRol)
+                    return usuarioUseCase.registrarUsuario(usuario, idRol, password)
                             .flatMap(saved -> {
                                 logGateway.info("registrarUsuario", String.format("Usuario registrado id=%d, email=%s", saved.getIdUsuario(), saved.getEmail()));
                                 return ServerResponse.status(HttpStatus.CREATED)
