@@ -1,5 +1,6 @@
 package co.com.pragma.api;
 
+import co.com.pragma.api.config.AuthPath;
 import co.com.pragma.api.config.RolPath;
 import co.com.pragma.api.config.UsuarioPath;
 import co.com.pragma.api.util.OpenApiUtil;
@@ -19,6 +20,7 @@ public class RouterRest {
 
     private final UsuarioPath usuarioPath;
     private final RolPath rolPath;
+    private final AuthPath authPath;
 
     @Bean
     public RouterFunction<ServerResponse> usuarioRoutes(Handler handler) {
@@ -35,7 +37,7 @@ public class RouterRest {
     @Bean
     public RouterFunction<ServerResponse> authRoutes(Handler handler) {
         return route()
-                .POST("/api/v1/login", accept(MediaType.APPLICATION_JSON),
+                .POST(authPath.getLogin(), accept(MediaType.APPLICATION_JSON),
                         handler::login, OpenApiUtil::login)
                 .build();
     }

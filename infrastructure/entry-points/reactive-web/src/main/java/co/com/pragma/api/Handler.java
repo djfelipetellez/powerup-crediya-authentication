@@ -93,15 +93,6 @@ public class Handler {
                                                 "token", tokenAuth.token(),
                                                 "message", "Login exitoso"
                                         ));
-                            })
-                            .onErrorResume(error -> {
-                                logGateway.error("login", "Error en login: " + error.getMessage(), error);
-                                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .bodyValue(Map.of(
-                                                "error", "Credenciales inválidas",
-                                                "message", error.getMessage()
-                                        ));
                             });
                 });
     }

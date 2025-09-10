@@ -2,7 +2,6 @@ package co.com.pragma.security;
 
 import co.com.pragma.model.auth.UsuarioCredencial;
 import co.com.pragma.model.usuario.Usuario;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,12 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-@RequiredArgsConstructor
-public class CustomUserDetails implements UserDetails {
-
-    private final UsuarioCredencial usuarioCredencial;
-    private final Usuario usuario;
-
+public record CustomUserDetails(UsuarioCredencial usuarioCredencial, Usuario usuario) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -52,14 +46,6 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return usuarioCredencial.isActive();
-    }
-
-    public UsuarioCredencial getUsuarioCredencial() {
-        return usuarioCredencial;
-    }
-
-    public Usuario getUsuario() {
-        return usuario;
     }
 
     public Integer getUserId() {

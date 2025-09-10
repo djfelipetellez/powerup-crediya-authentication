@@ -1,5 +1,6 @@
 package co.com.pragma.config;
 
+import co.com.pragma.model.auth.gateways.AuthenticationGateway;
 import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
@@ -37,8 +38,8 @@ public class UseCasesConfig {
     }
 
     @Bean
-    public LoginAuthenticationUseCase loginAuthenticationUseCase(UsuarioCredencialRepository usuarioCredencialRepository, UsuarioRepository usuarioRepository, LogGateway logGateway) {
-        return new LoginAuthenticationUseCase(usuarioCredencialRepository, usuarioRepository, logGateway);
+    public LoginAuthenticationUseCase loginAuthenticationUseCase(AuthenticationGateway authenticationGateway) {
+        return new LoginAuthenticationUseCase(authenticationGateway);
     }
 
     @Bean

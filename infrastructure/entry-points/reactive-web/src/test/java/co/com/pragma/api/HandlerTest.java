@@ -11,6 +11,7 @@ import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
+import co.com.pragma.usecase.auth.LoginAuthenticationUseCase;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ class HandlerTest {
     private RolUseCase rolUseCase;
 
     @Mock
+    private LoginAuthenticationUseCase loginAuthenticationUseCase;
+
+    @Mock
     private UsuarioMapper usuarioMapper;
 
     @Mock
@@ -64,7 +68,7 @@ class HandlerTest {
     @Test
     void registrarUsuario() {
         // Arrange
-        UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto("test", "test", "test@test.com", "123456789", "123456789", new BigDecimal(1000), 1);
+        UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto("test", "test", "test@test.com", "123456789", "123456789", new BigDecimal(1000), "password", 1);
         Usuario usuario = new Usuario();
         co.com.pragma.api.dto.RoleResponseDto roleResponseDto = new co.com.pragma.api.dto.RoleResponseDto(1, "test", "test");
         UsuarioResponseDto responseDto = new UsuarioResponseDto(1, "test", "test", "test@test.com", "123456789", "123456789", new BigDecimal(1000), roleResponseDto);
@@ -72,7 +76,7 @@ class HandlerTest {
         when(serverRequest.bodyToMono(UsuarioRegistroRequestDto.class)).thenReturn(Mono.just(requestDto));
         when(requestValidator.validate(any())).thenReturn(Mono.just(requestDto));
         when(usuarioMapper.toDomain(any())).thenReturn(usuario);
-        when(usuarioUseCase.registrarUsuario(any(), any())).thenReturn(Mono.just(usuario));
+        when(usuarioUseCase.registrarUsuario(any(), any(), any())).thenReturn(Mono.just(usuario));
         when(usuarioMapper.toResponseDto(any())).thenReturn(responseDto);
         doNothing().when(logGateway).info(any(), any());
 

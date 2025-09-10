@@ -48,7 +48,7 @@ public class UsuarioUseCase {
     private Mono<UsuarioCredencial> crearCredencialesUsuario(Usuario usuario, String password) {
         UsuarioCredencial credential = UsuarioCredencial.builder()
                 .email(usuario.getEmail())
-                .password(password) // TODO: Encriptar con BCrypt
+                .password(password) // Sin hashear - el adapter se encarga
                 .idUsuario(usuario.getIdUsuario())
                 .createdAt(LocalDateTime.now())
                 .active(true)

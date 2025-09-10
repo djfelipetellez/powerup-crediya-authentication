@@ -1,5 +1,6 @@
 package co.com.pragma.config;
 
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
@@ -54,6 +55,11 @@ class UseCasesConfigTest {
         @Bean
         public LogGateway logGateway() {
             return mock(LogGateway.class);
+        }
+
+        @Bean
+        public UsuarioCredencialRepository usuarioCredencialRepository() {
+            return mock(UsuarioCredencialRepository.class);
         }
     }
 }

@@ -12,6 +12,7 @@ import co.com.pragma.api.util.RequestValidator;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
+import co.com.pragma.usecase.auth.LoginAuthenticationUseCase;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,6 @@ import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,9 +55,12 @@ class ConfigTest {
     @Mock
     private LogGateway logGateway;
 
+    @Mock
+    private LoginAuthenticationUseCase loginAuthenticationUseCase;
+
     @BeforeEach
     void setUp() {
-        Handler handler = new Handler(usuarioUseCase, rolUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
+        Handler handler = new Handler(usuarioUseCase, rolUseCase, loginAuthenticationUseCase, usuarioMapper, rolMapper, requestValidator, logGateway);
 
         UsuarioPath usuarioPath = new UsuarioPath();
         usuarioPath.setBase("/api/v1/usuarios");
@@ -66,7 +69,10 @@ class ConfigTest {
         RolPath rolPath = new RolPath();
         rolPath.setRoles("/api/v1/roles");
 
-        RouterRest routerRest = new RouterRest(usuarioPath, rolPath);
+        AuthPath authPath = new AuthPath();
+        authPath.setLogin("/api/v1/login");
+
+        RouterRest routerRest = new RouterRest(usuarioPath, rolPath, authPath);
 
         // Combinar las RouterFunctions con configuraciones de seguridad
         RouterFunction<ServerResponse> usuarioRoutes = routerRest.usuarioRoutes(handler);
@@ -105,7 +111,7 @@ class ConfigTest {
         // Arrange
         setupUsuarioMocks();
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), "password", 1);
 
         // Act & Assert
         webTestClient.post()
@@ -152,7 +158,7 @@ class ConfigTest {
         // Arrange
         setupUsuarioMocks();
         UsuarioRegistroRequestDto requestDto = new UsuarioRegistroRequestDto(
-                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1);
+                "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), "password", 1);
 
         // Act & Assert
         webTestClient.post()
@@ -176,10 +182,10 @@ class ConfigTest {
 
         given(requestValidator.validate(any(UsuarioRegistroRequestDto.class)))
                 .willReturn(Mono.just(new UsuarioRegistroRequestDto(
-                        "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), 1)));
+                        "test", "test", "test@test.com", "12345", "12345", new BigDecimal(100), "password", 1)));
         given(usuarioMapper.toDomain(any(UsuarioRegistroRequestDto.class)))
                 .willReturn(usuario);
-        given(usuarioUseCase.registrarUsuario(any(Usuario.class), anyInt()))
+        given(usuarioUseCase.registrarUsuario(any(Usuario.class), any(Integer.class), any(String.class)))
                 .willReturn(Mono.just(usuario));
         given(usuarioMapper.toResponseDto(any(Usuario.class)))
                 .willReturn(usuarioResponseDto);

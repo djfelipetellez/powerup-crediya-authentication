@@ -5,6 +5,7 @@ import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.r2dbc.entity.UserCredentialEntity;
 import co.com.pragma.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
@@ -16,8 +17,11 @@ public class UsuarioCredentialReactiveRepositoryAdapter extends ReactiveAdapterO
         UserCredentialReactiveRepository
         > implements UsuarioCredencialRepository {
 
-    public UsuarioCredentialReactiveRepositoryAdapter(UserCredentialReactiveRepository repository, ObjectMapper mapper) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UsuarioCredentialReactiveRepositoryAdapter(UserCredentialReactiveRepository repository, ObjectMapper mapper, PasswordEncoder passwordEncoder) {
         super(repository, mapper, d -> mapper.map(d, UsuarioCredencial.class));
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -28,7 +32,18 @@ public class UsuarioCredentialReactiveRepositoryAdapter extends ReactiveAdapterO
 
     @Override
     public Mono<UsuarioCredencial> save(UsuarioCredencial usuarioCredencial) {
-        UserCredentialEntity entity = toData(usuarioCredencial);
+        // Hash de la contraseña antes de guardar
+        String hashedPassword = passwordEncoder.encode(usuarioCredencial.getPassword());
+
+        UsuarioCredencial credentialWithHashedPassword = UsuarioCredencial.builder()
+                .email(usuarioCredencial.getEmail())
+                .password(hashedPassword)
+                .idUsuario(usuarioCredencial.getIdUsuario())
+                .createdAt(usuarioCredencial.getCreatedAt())
+                .active(usuarioCredencial.isActive())
+                .build();
+
+        UserCredentialEntity entity = toData(credentialWithHashedPassword);
         return repository.save(entity)
                 .map(this::toEntity);
     }
