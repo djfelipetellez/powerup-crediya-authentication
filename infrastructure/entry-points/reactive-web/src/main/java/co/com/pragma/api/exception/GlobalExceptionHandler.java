@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.*;
@@ -84,6 +85,11 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 httpStatus = HttpStatus.UNAUTHORIZED;
                 logGateway.warn(action, "Credenciales inválidas: " + ex.getMessage(), ex);
                 problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+            }
+            case AccessDeniedException ex -> {
+                httpStatus = HttpStatus.FORBIDDEN;
+                logGateway.warn(action, "Acceso denegado: " + ex.getMessage(), ex);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.MSG_403);
             }
             case IllegalArgumentException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;

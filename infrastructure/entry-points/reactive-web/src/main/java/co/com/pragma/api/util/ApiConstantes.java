@@ -27,6 +27,7 @@ public final class ApiConstantes {
     public static final String MSG_201 = "Recurso creado exitosamente";
     public static final String MSG_400 = "Petición inválida";
     public static final String MSG_401 = "Credenciales inválidas";
+    public static final String MSG_403 = "No tienes permisos para acceder a este recurso";
     public static final String MSG_500 = "Error interno del servidor";
 
     // --- Mensajes específicos ---
@@ -54,9 +55,4 @@ public final class ApiConstantes {
     public static final String MSG_DATA_INTEGRITY_DOCUMENT = "Ya existe un usuario registrado con ese documento de identidad.";
     public static final String MSG_DATA_INTEGRITY_EMAIL = "Ya existe un usuario registrado con ese email.";
     public static final String MSG_UNEXPECTED_ERROR = "An unexpected error occurred";
-    public static final String KEY_MESSAGE = "message";
-    public static final String KEY_ERRORS = "errors";
-    public static final String KEY_STATUS = "status";
-    public static final String KEY_ERROR = "error";
-    public static final String KEY_PATH = "path";
 }

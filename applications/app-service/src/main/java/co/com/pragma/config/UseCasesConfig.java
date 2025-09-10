@@ -38,8 +38,8 @@ public class UseCasesConfig {
     }
 
     @Bean
-    public LoginAuthenticationUseCase loginAuthenticationUseCase(AuthenticationGateway authenticationGateway) {
-        return new LoginAuthenticationUseCase(authenticationGateway);
+    public LoginAuthenticationUseCase loginAuthenticationUseCase(AuthenticationGateway authenticationGateway, LogGateway logGateway) {
+        return new LoginAuthenticationUseCase(authenticationGateway, logGateway);
     }
 
     @Bean

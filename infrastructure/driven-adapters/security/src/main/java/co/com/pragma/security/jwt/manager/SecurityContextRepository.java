@@ -1,5 +1,6 @@
 package co.com.pragma.security.jwt.manager;
 
+import co.com.pragma.model.common.gateways.LogGateway;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -13,9 +14,11 @@ import reactor.core.publisher.Mono;
 public class SecurityContextRepository implements ServerSecurityContextRepository {
 
     private final JwtAuthenticationManager jwtAuthenticationManager;
+    private final LogGateway logGateway;
 
-    public SecurityContextRepository(JwtAuthenticationManager jwtAuthenticationManager) {
+    public SecurityContextRepository(JwtAuthenticationManager jwtAuthenticationManager, LogGateway logGateway) {
         this.jwtAuthenticationManager = jwtAuthenticationManager;
+        this.logGateway = logGateway;
     }
 
     @Override
@@ -30,14 +33,20 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         String token = exchange.getAttribute("token");
 
         if (token != null) {
+            logGateway.info("security-context", "Cargando contexto de seguridad para token");
+
             // Crear authentication object con el token
             Authentication auth = new UsernamePasswordAuthenticationToken(token, token);
 
             // Usar el JwtAuthenticationManager para autenticar
             return jwtAuthenticationManager.authenticate(auth)
+                    .doOnNext(authentication -> logGateway.info("security-context",
+                            "Contexto de seguridad creado para: " + authentication.getName() +
+                                    " con roles: " + authentication.getAuthorities()))
                     .map(SecurityContextImpl::new);
         }
 
+        logGateway.debug("security-context", "No hay token en el exchange");
         return Mono.empty();
     }
 }

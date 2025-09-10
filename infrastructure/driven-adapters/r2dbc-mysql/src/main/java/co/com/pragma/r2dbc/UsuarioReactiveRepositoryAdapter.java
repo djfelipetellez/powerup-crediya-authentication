@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
@@ -19,17 +20,22 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         > implements UsuarioRepository {
 
     private final RolReactiveRepository rolRepository;
+    private final LogGateway logGateway;
 
     public UsuarioReactiveRepositoryAdapter(UsuarioReactiveRepository repository, RolReactiveRepository rolRepository
-            , ObjectMapper mapper) {
+            , ObjectMapper mapper, LogGateway logGateway) {
         super(repository, mapper, d -> mapper.map(d, Usuario.class));
         this.rolRepository = rolRepository;
+        this.logGateway = logGateway;
     }
 
     @Override
     public Mono<Usuario> save(Usuario usuario) {
+        logGateway.debug("UsuarioRepositoryAdapter", "Guardando usuario: " + usuario.getEmail());
+
         // Validar que el usuario tenga un rol asignado
         if (usuario.getRol() == null || usuario.getRol().getIdRol() == null) {
+            logGateway.error("UsuarioRepositoryAdapter", "Usuario sin rol asignado: " + usuario.getEmail(), null);
             return Mono.error(new IllegalArgumentException("El usuario debe tener un rol asignado"));
         }
 
@@ -45,6 +51,10 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                 .build();
 
         return repository.save(entity)
+                .doOnSuccess(savedEntity ->
+                        logGateway.debug("UsuarioRepositoryAdapter", "Usuario guardado exitosamente: " + savedEntity.getEmail()))
+                .doOnError(error ->
+                        logGateway.error("UsuarioRepositoryAdapter", "Error guardando usuario: " + error.getMessage(), error))
                 .map(savedEntity -> Usuario.builder()
                         .idUsuario(savedEntity.getIdUsuario())
                         .nombre(savedEntity.getNombre())
@@ -151,6 +161,8 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     @Transactional
     public Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId) {
+        logGateway.info("UsuarioRepositoryAdapter", "Registrando usuario completo: " + usuario.getEmail() + " con rol: " + roleId);
+
         return rolRepository.findById(roleId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Rol no encontrado con ID: " + roleId)))
                 .flatMap(rolEntity -> {
@@ -165,6 +177,10 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                             .build();
 
                     return this.save(usuarioConRol);
-                });
+                })
+                .doOnSuccess(usuarioGuardado ->
+                        logGateway.info("UsuarioRepositoryAdapter", "Usuario registrado completamente: " + usuarioGuardado.getEmail()))
+                .doOnError(error ->
+                        logGateway.error("UsuarioRepositoryAdapter", "Error registrando usuario completo: " + error.getMessage(), error));
     }
 }

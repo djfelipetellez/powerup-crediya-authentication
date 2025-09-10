@@ -23,6 +23,7 @@ spring:
   web:
     resources:
       add-mappings: false
+
 management:
   endpoints:
     web:

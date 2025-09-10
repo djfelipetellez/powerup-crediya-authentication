@@ -1,5 +1,6 @@
 package co.com.pragma.security.jwt.manager;
 
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.security.jwt.provider.JwtProvider;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,17 +17,23 @@ import java.util.stream.Stream;
 public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
 
     private final JwtProvider jwtProvider;
+    private final LogGateway logGateway;
 
-    public JwtAuthenticationManager(JwtProvider jwtProvider) {
+    public JwtAuthenticationManager(JwtProvider jwtProvider, LogGateway logGateway) {
         this.jwtProvider = jwtProvider;
+        this.logGateway = logGateway;
     }
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         return Mono.just(authentication)
                 .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
-                .log()
-                .onErrorResume(e -> Mono.error(new RuntimeException("bad token")))
+                .doOnNext(claims -> logGateway.info("jwt-auth-manager",
+                        "Token autenticado para usuario: " + claims.getSubject()))
+                .onErrorResume(e -> {
+                    logGateway.error("jwt-auth-manager", "Token inválido: " + e.getMessage(), e);
+                    return Mono.error(new RuntimeException("bad token"));
+                })
                 .map(claims -> new UsernamePasswordAuthenticationToken(
                         claims.getSubject(),
                         null,
