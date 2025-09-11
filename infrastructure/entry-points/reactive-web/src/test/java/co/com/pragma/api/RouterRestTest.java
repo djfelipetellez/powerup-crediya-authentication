@@ -1,5 +1,6 @@
 package co.com.pragma.api;
 
+import co.com.pragma.api.config.AuthPath;
 import co.com.pragma.api.config.RolPath;
 import co.com.pragma.api.config.UsuarioPath;
 import co.com.pragma.api.dto.*;
@@ -68,7 +69,10 @@ class RouterRestTest {
         RolPath rolPath = new RolPath();
         rolPath.setRoles("/api/v1/roles");
 
-        RouterRest routerRest = new RouterRest(usuarioPath, rolPath);
+        AuthPath authPath = new AuthPath();
+        authPath.setLogin("/api/v1/auth/login");
+
+        RouterRest routerRest = new RouterRest(usuarioPath, rolPath, authPath);
 
         // Combinar las RouterFunctions separadas como en tu implementación real
         RouterFunction<ServerResponse> usuarioRoutes = routerRest.usuarioRoutes(handler);

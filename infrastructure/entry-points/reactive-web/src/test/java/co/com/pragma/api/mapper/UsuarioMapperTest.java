@@ -49,6 +49,7 @@ class UsuarioMapperTest {
                 "123456789",
                 "123456789",
                 new BigDecimal(1000),
+                "password123",
                 1
         );
 
