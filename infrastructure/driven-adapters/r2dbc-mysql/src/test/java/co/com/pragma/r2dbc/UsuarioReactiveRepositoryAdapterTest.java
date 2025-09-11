@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.r2dbc.entity.RolEntity;
@@ -7,9 +8,9 @@ import co.com.pragma.r2dbc.entity.UsuarioEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.reactivecommons.utils.ObjectMapper;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,7 +28,12 @@ class UsuarioReactiveRepositoryAdapterTest {
     @Mock
     private RolReactiveRepository rolRepository;
 
-    @InjectMocks
+    @Mock
+    private ObjectMapper mapper;
+
+    @Mock
+    private LogGateway logGateway;
+
     private UsuarioReactiveRepositoryAdapter adapter;
 
     private Usuario usuario;
@@ -37,6 +43,9 @@ class UsuarioReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
+        // Crear instancia manual del adapter con las dependencias mockeadas
+        adapter = new UsuarioReactiveRepositoryAdapter(usuarioRepository, rolRepository, mapper, logGateway);
+        
         rol = Rol.builder()
                 .idRol(1)
                 .nombre("ADMIN")

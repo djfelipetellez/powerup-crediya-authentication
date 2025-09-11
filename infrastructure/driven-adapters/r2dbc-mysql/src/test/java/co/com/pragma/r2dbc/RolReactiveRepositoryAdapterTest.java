@@ -1,5 +1,6 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.r2dbc.entity.RolEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.reactivecommons.utils.ObjectMapper;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -20,6 +22,12 @@ class RolReactiveRepositoryAdapterTest {
 
     @Mock
     private RolReactiveRepository rolReactiveRepository;
+
+    @Mock
+    private ObjectMapper mapper;
+
+    @Mock
+    private LogGateway logGateway;
 
     @InjectMocks
     private RolReactiveRepositoryAdapter adapter;
