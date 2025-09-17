@@ -108,6 +108,26 @@ public class OpenApiUtil {
                                 .schema(schemaBuilder().implementation(ProblemDetail.class))));
     }
 
+    public Builder validateToken(Builder builder) {
+        return builder
+                .operationId("validateToken")
+                .description("Valida un token JWT y retorna la información del usuario")
+                .tag(TAG_AUTENTICACION)
+                .requestBody(requestBodyBuilder()
+                        .required(true)
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_JSON)
+                                .schema(schemaBuilder().implementation(TokenValidationRequestDto.class))))
+                .response(responseBuilder().responseCode("200").description("Token validado exitosamente")
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_JSON)
+                                .schema(schemaBuilder().implementation(TokenValidationResponseDto.class))))
+                .response(responseBuilder().responseCode("400").description(MSG_400)
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_PROBLEM_JSON)
+                                .schema(schemaBuilder().implementation(ProblemDetail.class))))
+                .response(responseBuilder().responseCode("500").description(MSG_500)
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_PROBLEM_JSON)
+                                .schema(schemaBuilder().implementation(ProblemDetail.class))));
+    }
+
     public static OpenAPI createApiInfo(String title, String description, String version,
                                         String contactName, String contactEmail) {
         return new OpenAPI()

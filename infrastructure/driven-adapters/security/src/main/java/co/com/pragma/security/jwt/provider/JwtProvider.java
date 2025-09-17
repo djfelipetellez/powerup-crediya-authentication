@@ -27,9 +27,10 @@ public class JwtProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String username, Integer userId, String roleName) {
+    public String generateToken(String username, Integer userId, String roleName, String documentoIdentidad) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
+        claims.put("documentoIdentidad", documentoIdentidad);
 
         // Estructura de roles como en tu ejemplo
         List<Map<String, String>> roles = List.of(
@@ -72,5 +73,9 @@ public class JwtProvider {
 
     public Integer getUserIdFromToken(String token) {
         return getClaims(token).get("userId", Integer.class);
+    }
+
+    public String getDocumentoIdentidadFromToken(String token) {
+        return getClaims(token).get("documentoIdentidad", String.class);
     }
 }

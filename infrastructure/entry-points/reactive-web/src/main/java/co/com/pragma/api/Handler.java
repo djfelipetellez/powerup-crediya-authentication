@@ -3,6 +3,8 @@ package co.com.pragma.api;
 import co.com.pragma.api.dto.ClienteValidationRequest;
 import co.com.pragma.api.dto.LoginRequestDto;
 import co.com.pragma.api.dto.RolRegistroRequestDto;
+import co.com.pragma.api.dto.TokenValidationRequestDto;
+import co.com.pragma.api.dto.TokenValidationResponseDto;
 import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
@@ -116,5 +118,38 @@ public class Handler {
                         logGateway.error("Handler", "Error validando existencia: " + error.getMessage(), error);
                     }
                 });
+    }
+
+    public Mono<ServerResponse> validateToken(ServerRequest request) {
+        logGateway.info("Handler", "=== INICIANDO validateToken endpoint ===");
+        
+        return request.bodyToMono(TokenValidationRequestDto.class)
+                .doOnNext(req -> logGateway.info("Handler", "Token recibido para validación: " + req.token().substring(0, Math.min(20, req.token().length())) + "..."))
+                .flatMap(requestValidator::validate)
+                .doOnNext(req -> logGateway.info("Handler", "Request validado correctamente"))
+                .flatMap(tokenRequest -> {
+                    logGateway.info("Handler", "Enviando token al use case para validación");
+
+                    return loginAuthenticationUseCase.validateToken(tokenRequest.token())
+                            .doOnNext(result -> logGateway.info("Handler", "Resultado del use case - válido: " + result.valid() + ", error: " + result.error()))
+                            .flatMap(result -> {
+                                TokenValidationResponseDto response = new TokenValidationResponseDto(
+                                        result.valid(),
+                                        result.userId(),
+                                        result.email(),
+                                        result.role(),
+                                        result.documentoIdentidad(),
+                                        result.exp(),
+                                        result.error()
+                                );
+
+                                logGateway.info("Handler", "=== FINALIZANDO validateToken endpoint - Respuesta: " + response.valid() + " ===");
+
+                                return ServerResponse.ok()
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(response);
+                            });
+                })
+                .doOnError(error -> logGateway.error("Handler", "Error en validateToken: " + error.getMessage(), error));
     }
 }

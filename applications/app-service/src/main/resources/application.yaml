@@ -49,7 +49,8 @@ api:
       validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"
     roles: "/api/v1/roles"
     auth:
-      login: "/api/v1/login"
+      login: "/api/v1/auth/login"
+      validate-token: "/api/v1/auth/validate-token"
 
 # SpringDoc OpenAPI Configuration
 springdoc:

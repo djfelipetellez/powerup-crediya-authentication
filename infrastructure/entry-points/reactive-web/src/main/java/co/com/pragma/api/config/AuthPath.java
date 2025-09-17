@@ -12,4 +12,5 @@ import org.springframework.stereotype.Component;
 public class AuthPath {
 
     private String login;
+    private String validateToken;
 }

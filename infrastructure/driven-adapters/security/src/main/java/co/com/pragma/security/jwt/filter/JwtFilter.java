@@ -27,7 +27,7 @@ public class JwtFilter implements WebFilter {
 
         // Permitir acceso sin token a rutas públicas
         if (isPublicPath(path)) {
-            logGateway.debug("jwt-filter", Constantes.MSG_ACCESS_PUBLIC_ROUTE + ": " + path);
+            logGateway.info("jwt-filter", "=== RUTA PÚBLICA DETECTADA - Permitiendo acceso sin token: " + path + " ===");
             return chain.filter(exchange);
         }
 
@@ -50,6 +50,7 @@ public class JwtFilter implements WebFilter {
 
     private boolean isPublicPath(String path) {
         return path.contains("login") ||
+                path.contains("validate-token") ||
                 path.contains("/swagger-ui") ||
                 path.contains("/v3/api-docs") ||
                 path.contains("/webjars") ||
