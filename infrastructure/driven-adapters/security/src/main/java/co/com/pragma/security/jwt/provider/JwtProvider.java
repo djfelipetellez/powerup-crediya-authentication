@@ -1,6 +1,7 @@
 package co.com.pragma.security.jwt.provider;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -63,8 +64,12 @@ public class JwtProvider {
     }
 
     public Boolean isTokenExpired(String token) {
-        Claims claims = getClaims(token);
-        return claims.getExpiration().before(new Date());
+        try {
+            Claims claims = getClaims(token);
+            return claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
     }
 
     public String getUsernameFromToken(String token) {

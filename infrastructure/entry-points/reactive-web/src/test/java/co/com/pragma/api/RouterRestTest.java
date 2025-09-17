@@ -7,6 +7,9 @@ import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.auth.LoginCredenciales;
+import co.com.pragma.model.auth.TokenAutenticacion;
+import co.com.pragma.model.auth.TokenValidationResult;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
@@ -71,14 +74,16 @@ class RouterRestTest {
 
         AuthPath authPath = new AuthPath();
         authPath.setLogin("/api/v1/auth/login");
+        authPath.setValidateToken("/api/v1/auth/validate-token");
 
         RouterRest routerRest = new RouterRest(usuarioPath, rolPath, authPath);
 
         // Combinar las RouterFunctions separadas como en tu implementación real
         RouterFunction<ServerResponse> usuarioRoutes = routerRest.usuarioRoutes(handler);
         RouterFunction<ServerResponse> rolRoutes = routerRest.rolRoutes(handler);
+        RouterFunction<ServerResponse> authRoutes = routerRest.authRoutes(handler);
         RouterFunction<ServerResponse> validacionRoutes = routerRest.validacionRoutes(handler);
-        RouterFunction<ServerResponse> allRoutes = usuarioRoutes.and(rolRoutes).and(validacionRoutes);
+        RouterFunction<ServerResponse> allRoutes = usuarioRoutes.and(rolRoutes).and(authRoutes).and(validacionRoutes);
 
         webTestClient = WebTestClient
                 .bindToRouterFunction(allRoutes)
@@ -166,6 +171,85 @@ class RouterRestTest {
                 .body(BodyInserters.fromValue(requestDto))
                 .exchange()
                 .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    void loginTest() {
+        // Arrange
+        LoginRequestDto loginDto = new LoginRequestDto("test@example.com", "password123");
+        TokenAutenticacion tokenAuth = new TokenAutenticacion("jwt.token.here");
+
+        given(requestValidator.validate(any(LoginRequestDto.class)))
+                .willReturn(Mono.just(loginDto));
+        given(loginAuthenticationUseCase.login(any(LoginCredenciales.class)))
+                .willReturn(Mono.just(tokenAuth));
+
+        // Act & Assert
+        webTestClient.post()
+                .uri("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(loginDto))
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.token").isEqualTo("jwt.token.here")
+                .jsonPath("$.message").isEqualTo("Login exitoso");
+    }
+
+    @Test
+    void validateTokenTest_ValidToken() {
+        // Arrange
+        TokenValidationRequestDto requestDto = new TokenValidationRequestDto("valid.jwt.token");
+        TokenValidationResult validationResult = new TokenValidationResult(
+                true, 1, "test@example.com", "ADMIN", "12345678", 1758143042L, null
+        );
+
+        given(requestValidator.validate(any(TokenValidationRequestDto.class)))
+                .willReturn(Mono.just(requestDto));
+        given(loginAuthenticationUseCase.validateToken("valid.jwt.token"))
+                .willReturn(Mono.just(validationResult));
+
+        // Act & Assert
+        webTestClient.post()
+                .uri("/api/v1/auth/validate-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(requestDto))
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.valid").isEqualTo(true)
+                .jsonPath("$.userId").isEqualTo(1)
+                .jsonPath("$.email").isEqualTo("test@example.com")
+                .jsonPath("$.role").isEqualTo("ADMIN")
+                .jsonPath("$.documentoIdentidad").isEqualTo("12345678");
+    }
+
+    @Test
+    void validateTokenTest_InvalidToken() {
+        // Arrange
+        TokenValidationRequestDto requestDto = new TokenValidationRequestDto("invalid.jwt.token");
+        TokenValidationResult validationResult = new TokenValidationResult(
+                false, null, null, null, null, null, "Token inválido"
+        );
+
+        given(requestValidator.validate(any(TokenValidationRequestDto.class)))
+                .willReturn(Mono.just(requestDto));
+        given(loginAuthenticationUseCase.validateToken("invalid.jwt.token"))
+                .willReturn(Mono.just(validationResult));
+
+        // Act & Assert
+        webTestClient.post()
+                .uri("/api/v1/auth/validate-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(requestDto))
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.valid").isEqualTo(false)
+                .jsonPath("$.error").isEqualTo("Token inválido");
     }
 
     // Métodos helper para crear objetos mock

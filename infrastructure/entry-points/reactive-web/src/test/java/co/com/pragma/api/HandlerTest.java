@@ -1,12 +1,12 @@
 package co.com.pragma.api;
 
-import co.com.pragma.api.dto.ClienteValidationRequest;
-import co.com.pragma.api.dto.RolRegistroRequestDto;
-import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
-import co.com.pragma.api.dto.UsuarioResponseDto;
+import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
+import co.com.pragma.model.auth.LoginCredenciales;
+import co.com.pragma.model.auth.TokenAutenticacion;
+import co.com.pragma.model.auth.TokenValidationResult;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.usuario.Usuario;
@@ -148,5 +148,70 @@ class HandlerTest {
         StepVerifier.create(result)
                 .expectError(UsuarioNotFoundException.class)
                 .verify();
+    }
+/*
+    @Test
+    void login_Success() {
+        // Arrange
+        LoginRequestDto loginDto = new LoginRequestDto("test@example.com", "password123");
+        TokenAuthentication tokenAuth = new TokenAuthentication("jwt.token.here");
+
+        when(serverRequest.bodyToMono(LoginRequestDto.class)).thenReturn(Mono.just(loginDto));
+        when(requestValidator.validate(any(LoginRequestDto.class))).thenReturn(Mono.just(loginDto));
+        when(loginAuthenticationUseCase.login(any(LoginCredenciales.class))).thenReturn(Mono.just(tokenAuth));
+        doNothing().when(logGateway).info(any(), any());
+
+        // Act
+        Mono<ServerResponse> result = handler.login(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
+    } */
+
+    @Test
+    void validateToken_ValidToken() {
+        // Arrange
+        TokenValidationRequestDto requestDto = new TokenValidationRequestDto("valid.jwt.token");
+        TokenValidationResult validationResult = new TokenValidationResult(
+                true, 1, "test@example.com", "ADMIN", "12345678", 1758143042L, null
+        );
+
+        when(serverRequest.bodyToMono(TokenValidationRequestDto.class)).thenReturn(Mono.just(requestDto));
+        when(requestValidator.validate(any(TokenValidationRequestDto.class))).thenReturn(Mono.just(requestDto));
+        when(loginAuthenticationUseCase.validateToken("valid.jwt.token")).thenReturn(Mono.just(validationResult));
+        doNothing().when(logGateway).info(any(), any());
+
+        // Act
+        Mono<ServerResponse> result = handler.validateToken(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
+    }
+
+    @Test
+    void validateToken_InvalidToken() {
+        // Arrange
+        TokenValidationRequestDto requestDto = new TokenValidationRequestDto("invalid.jwt.token");
+        TokenValidationResult validationResult = new TokenValidationResult(
+                false, null, null, null, null, null, "Token inválido"
+        );
+
+        when(serverRequest.bodyToMono(TokenValidationRequestDto.class)).thenReturn(Mono.just(requestDto));
+        when(requestValidator.validate(any(TokenValidationRequestDto.class))).thenReturn(Mono.just(requestDto));
+        when(loginAuthenticationUseCase.validateToken("invalid.jwt.token")).thenReturn(Mono.just(validationResult));
+        doNothing().when(logGateway).info(any(), any());
+        doNothing().when(logGateway).error(any(), any(), any());
+
+        // Act
+        Mono<ServerResponse> result = handler.validateToken(serverRequest);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
     }
 }

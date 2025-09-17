@@ -1,11 +1,6 @@
 package co.com.pragma.api;
 
-import co.com.pragma.api.dto.ClienteValidationRequest;
-import co.com.pragma.api.dto.LoginRequestDto;
-import co.com.pragma.api.dto.RolRegistroRequestDto;
-import co.com.pragma.api.dto.TokenValidationRequestDto;
-import co.com.pragma.api.dto.TokenValidationResponseDto;
-import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
+import co.com.pragma.api.dto.*;
 import co.com.pragma.api.mapper.RolMapper;
 import co.com.pragma.api.mapper.UsuarioMapper;
 import co.com.pragma.api.util.RequestValidator;
@@ -122,7 +117,7 @@ public class Handler {
 
     public Mono<ServerResponse> validateToken(ServerRequest request) {
         logGateway.info("Handler", "=== INICIANDO validateToken endpoint ===");
-        
+
         return request.bodyToMono(TokenValidationRequestDto.class)
                 .doOnNext(req -> logGateway.info("Handler", "Token recibido para validación: " + req.token().substring(0, Math.min(20, req.token().length())) + "..."))
                 .flatMap(requestValidator::validate)

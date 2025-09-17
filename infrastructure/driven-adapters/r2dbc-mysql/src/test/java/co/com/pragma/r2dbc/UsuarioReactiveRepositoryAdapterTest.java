@@ -45,7 +45,7 @@ class UsuarioReactiveRepositoryAdapterTest {
     void setUp() {
         // Crear instancia manual del adapter con las dependencias mockeadas
         adapter = new UsuarioReactiveRepositoryAdapter(usuarioRepository, rolRepository, mapper, logGateway);
-        
+
         rol = Rol.builder()
                 .idRol(1)
                 .nombre("ADMIN")

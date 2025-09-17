@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Component
@@ -38,9 +39,11 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
                         claims.getSubject(),
                         null,
                         Stream.of(claims.get("roles"))
+                                .filter(Objects::nonNull)
                                 .map(role -> (List<Map<String, String>>) role)
                                 .flatMap(role -> role.stream()
                                         .map(r -> r.get("authority"))
+                                        .filter(Objects::nonNull)
                                         .map(SimpleGrantedAuthority::new))
                                 .toList())
                 );

@@ -18,12 +18,12 @@ class UsuarioResponseDtoTest {
         String telefono = "3001234567";
         BigDecimal salarioBase = new BigDecimal("2500000.00");
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Administrador");
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
-                idUsuario, nombre, apellido, email, documentoIdentidad, 
+                idUsuario, nombre, apellido, email, documentoIdentidad,
                 telefono, salarioBase, rol
         );
-        
+
         assertEquals(idUsuario, dto.idUsuario());
         assertEquals(nombre, dto.nombre());
         assertEquals(apellido, dto.apellido());
@@ -39,7 +39,7 @@ class UsuarioResponseDtoTest {
         UsuarioResponseDto dto = new UsuarioResponseDto(
                 null, null, null, null, null, null, null, null
         );
-        
+
         assertNull(dto.idUsuario());
         assertNull(dto.nombre());
         assertNull(dto.apellido());
@@ -57,11 +57,11 @@ class UsuarioResponseDtoTest {
         String apellido = "García";
         String email = "maria.garcia@company.com";
         RoleResponseDto rol = new RoleResponseDto(2, "ASESOR", "Asesor bancario");
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
                 idUsuario, nombre, apellido, email, null, null, null, rol
         );
-        
+
         assertEquals(idUsuario, dto.idUsuario());
         assertEquals(nombre, dto.nombre());
         assertEquals(apellido, dto.apellido());
@@ -76,32 +76,32 @@ class UsuarioResponseDtoTest {
     void equals_withSameData_shouldBeEqual() {
         BigDecimal salario = new BigDecimal("2500000.00");
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Administrador");
-        
+
         UsuarioResponseDto dto1 = new UsuarioResponseDto(
-                1, "Juan", "Pérez", "juan.perez@example.com", 
+                1, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", salario, rol
         );
         UsuarioResponseDto dto2 = new UsuarioResponseDto(
-                1, "Juan", "Pérez", "juan.perez@example.com", 
+                1, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", salario, rol
         );
-        
+
         assertEquals(dto1, dto2);
     }
 
     @Test
     void equals_withDifferentIdUsuario_shouldNotBeEqual() {
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Administrador");
-        
+
         UsuarioResponseDto dto1 = new UsuarioResponseDto(
-                1, "Juan", "Pérez", "juan.perez@example.com", 
+                1, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", new BigDecimal("2500000"), rol
         );
         UsuarioResponseDto dto2 = new UsuarioResponseDto(
-                2, "Juan", "Pérez", "juan.perez@example.com", 
+                2, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", new BigDecimal("2500000"), rol
         );
-        
+
         assertNotEquals(dto1, dto2);
     }
 
@@ -109,16 +109,16 @@ class UsuarioResponseDtoTest {
     void hashCode_withSameData_shouldBeSame() {
         BigDecimal salario = new BigDecimal("2500000.00");
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Administrador");
-        
+
         UsuarioResponseDto dto1 = new UsuarioResponseDto(
-                1, "Juan", "Pérez", "juan.perez@example.com", 
+                1, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", salario, rol
         );
         UsuarioResponseDto dto2 = new UsuarioResponseDto(
-                1, "Juan", "Pérez", "juan.perez@example.com", 
+                1, "Juan", "Pérez", "juan.perez@example.com",
                 "12345678", "3001234567", salario, rol
         );
-        
+
         assertEquals(dto1.hashCode(), dto2.hashCode());
     }
 
@@ -129,13 +129,13 @@ class UsuarioResponseDtoTest {
         String apellido = "Pérez";
         String email = "juan.perez@example.com";
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Administrador");
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
-                idUsuario, nombre, apellido, email, 
+                idUsuario, nombre, apellido, email,
                 "12345678", "3001234567", new BigDecimal("2500000"), rol
         );
         String result = dto.toString();
-        
+
         assertTrue(result.contains("1"));
         assertTrue(result.contains("Juan"));
         assertTrue(result.contains("Pérez"));
@@ -148,22 +148,22 @@ class UsuarioResponseDtoTest {
         RoleResponseDto adminRole = new RoleResponseDto(1, "ADMIN", "Administrador");
         RoleResponseDto asesorRole = new RoleResponseDto(2, "ASESOR", "Asesor");
         RoleResponseDto clienteRole = new RoleResponseDto(3, "CLIENTE", "Cliente");
-        
+
         UsuarioResponseDto adminUser = new UsuarioResponseDto(
-                1, "Admin", "User", "admin@test.com", 
+                1, "Admin", "User", "admin@test.com",
                 "11111111", "3001111111", new BigDecimal("5000000"), adminRole
         );
-        
+
         UsuarioResponseDto asesorUser = new UsuarioResponseDto(
-                2, "Asesor", "User", "asesor@test.com", 
+                2, "Asesor", "User", "asesor@test.com",
                 "22222222", "3002222222", new BigDecimal("3000000"), asesorRole
         );
-        
+
         UsuarioResponseDto clienteUser = new UsuarioResponseDto(
-                3, "Cliente", "User", "cliente@test.com", 
+                3, "Cliente", "User", "cliente@test.com",
                 "33333333", "3003333333", new BigDecimal("2000000"), clienteRole
         );
-        
+
         assertEquals(adminRole, adminUser.rol());
         assertEquals(asesorRole, asesorUser.rol());
         assertEquals(clienteRole, clienteUser.rol());
@@ -174,24 +174,24 @@ class UsuarioResponseDtoTest {
         BigDecimal salarioConDecimales = new BigDecimal("2500000.50");
         BigDecimal salarioSinDecimales = new BigDecimal("3000000");
         BigDecimal salarioGrande = new BigDecimal("999999999.99");
-        
+
         RoleResponseDto rol = new RoleResponseDto(1, "ADMIN", "Admin");
-        
+
         UsuarioResponseDto dto1 = new UsuarioResponseDto(
-                1, "User1", "Test", "user1@test.com", 
+                1, "User1", "Test", "user1@test.com",
                 "11111111", "3001111111", salarioConDecimales, rol
         );
-        
+
         UsuarioResponseDto dto2 = new UsuarioResponseDto(
-                2, "User2", "Test", "user2@test.com", 
+                2, "User2", "Test", "user2@test.com",
                 "22222222", "3002222222", salarioSinDecimales, rol
         );
-        
+
         UsuarioResponseDto dto3 = new UsuarioResponseDto(
-                3, "User3", "Test", "user3@test.com", 
+                3, "User3", "Test", "user3@test.com",
                 "33333333", "3003333333", salarioGrande, rol
         );
-        
+
         assertEquals(salarioConDecimales, dto1.salarioBase());
         assertEquals(salarioSinDecimales, dto2.salarioBase());
         assertEquals(salarioGrande, dto3.salarioBase());
@@ -206,12 +206,12 @@ class UsuarioResponseDtoTest {
         String telefonoEspecial = "+57-300-123-4567";
         BigDecimal salarioEspecial = new BigDecimal("2500000.75");
         RoleResponseDto rolEspecial = new RoleResponseDto(1, "ADMINISTRADOR", "Administrador del sistema");
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
-                1, nombreEspecial, apellidoEspecial, emailEspecial, 
+                1, nombreEspecial, apellidoEspecial, emailEspecial,
                 documentoEspecial, telefonoEspecial, salarioEspecial, rolEspecial
         );
-        
+
         assertEquals(nombreEspecial, dto.nombre());
         assertEquals(apellidoEspecial, dto.apellido());
         assertEquals(emailEspecial, dto.email());
@@ -224,11 +224,11 @@ class UsuarioResponseDtoTest {
     @Test
     void constructor_withEmptyStrings_shouldAccept() {
         RoleResponseDto rol = new RoleResponseDto(1, "", "");
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
                 0, "", "", "", "", "", BigDecimal.ZERO, rol
         );
-        
+
         assertEquals(0, dto.idUsuario());
         assertEquals("", dto.nombre());
         assertEquals("", dto.apellido());
@@ -250,7 +250,7 @@ class UsuarioResponseDtoTest {
         UsuarioResponseDto dto3 = new UsuarioResponseDto(
                 1, null, null, null, null, null, null, null
         );
-        
+
         assertEquals(dto1, dto2);
         assertNotEquals(dto1, dto3);
     }
@@ -260,7 +260,7 @@ class UsuarioResponseDtoTest {
         UsuarioResponseDto dto = new UsuarioResponseDto(
                 null, null, null, null, null, null, null, null
         );
-        
+
         assertDoesNotThrow(dto::hashCode);
     }
 
@@ -269,7 +269,7 @@ class UsuarioResponseDtoTest {
         UsuarioResponseDto dto = new UsuarioResponseDto(
                 null, null, null, null, null, null, null, null
         );
-        
+
         assertDoesNotThrow(() -> {
             String result = dto.toString();
             assertTrue(result.contains("UsuarioResponseDto"));
@@ -286,16 +286,16 @@ class UsuarioResponseDtoTest {
         String longPhone = "+57-" + "3".repeat(15);
         BigDecimal largeSalary = new BigDecimal("999999999999.99");
         RoleResponseDto largeRole = new RoleResponseDto(
-                Integer.MAX_VALUE, 
-                "ROLE_WITH_VERY_LONG_NAME", 
+                Integer.MAX_VALUE,
+                "ROLE_WITH_VERY_LONG_NAME",
                 "Role with a very long description that spans multiple lines"
         );
-        
+
         UsuarioResponseDto dto = new UsuarioResponseDto(
-                largeId, longName, longLastName, longEmail, 
+                largeId, longName, longLastName, longEmail,
                 longDocument, longPhone, largeSalary, largeRole
         );
-        
+
         assertEquals(largeId, dto.idUsuario());
         assertEquals(longName, dto.nombre());
         assertEquals(longLastName, dto.apellido());

@@ -44,7 +44,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
     @BeforeEach
     void setUp() {
         now = LocalDateTime.now();
-        
+
         usuarioCredencial = UsuarioCredencial.builder()
                 .id(1)
                 .email("test@example.com")
@@ -80,8 +80,8 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.findByEmail("test@example.com"))
                 .expectNextMatches(result ->
                         result.getEmail().equals("test@example.com") &&
-                        result.getIdUsuario().equals(100) &&
-                        result.isActive()
+                                result.getIdUsuario().equals(100) &&
+                                result.isActive()
                 )
                 .verifyComplete();
 
@@ -136,7 +136,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         // Arrange
         String hashedPassword = "hashedPlainPassword";
         when(passwordEncoder.encode("plainPassword")).thenReturn(hashedPassword);
-        
+
         UserCredentialEntity savedEntity = UserCredentialEntity.builder()
                 .id(1)
                 .email("test@example.com")
@@ -157,8 +157,8 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(usuarioCredencial))
                 .expectNextMatches(result ->
                         result.getEmail().equals("test@example.com") &&
-                        result.getIdUsuario().equals(100) &&
-                        result.isActive()
+                                result.getIdUsuario().equals(100) &&
+                                result.isActive()
                 )
                 .verifyComplete();
 
@@ -196,7 +196,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(credencialPasswordVacio))
                 .expectNextMatches(result ->
                         result.getEmail().equals("test@example.com") &&
-                        result.getIdUsuario().equals(100)
+                                result.getIdUsuario().equals(100)
                 )
                 .verifyComplete();
 
@@ -209,7 +209,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         // Arrange
         String hashedPassword = "hashedPlainPassword";
         when(passwordEncoder.encode("plainPassword")).thenReturn(hashedPassword);
-        
+
         UserCredentialEntity entityToSave = UserCredentialEntity.builder()
                 .email("test@example.com")
                 .password(hashedPassword)
@@ -219,7 +219,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
 
         when(mapper.map(any(UsuarioCredencial.class), eq(UserCredentialEntity.class)))
                 .thenReturn(entityToSave);
-        
+
         RuntimeException dbError = new RuntimeException("Database connection error");
         when(repository.save(any(UserCredentialEntity.class)))
                 .thenReturn(Mono.error(dbError));
@@ -272,11 +272,11 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(usuarioCredencial))
                 .expectNextMatches(result ->
                         result.getId().equals(1) &&
-                        result.getEmail().equals("test@example.com") &&
-                        result.getIdUsuario().equals(100) &&
-                        result.getCreatedAt().equals(now) &&
-                        result.getLastLoginAt().equals(now.minusHours(1)) &&
-                        result.isActive()
+                                result.getEmail().equals("test@example.com") &&
+                                result.getIdUsuario().equals(100) &&
+                                result.getCreatedAt().equals(now) &&
+                                result.getLastLoginAt().equals(now.minusHours(1)) &&
+                                result.isActive()
                 )
                 .verifyComplete();
     }
@@ -303,8 +303,8 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.updateLastLogin(1))
                 .expectNextMatches(result ->
                         result.getId().equals(1) &&
-                        result.getEmail().equals("test@example.com") &&
-                        result.getLastLoginAt() != null
+                                result.getEmail().equals("test@example.com") &&
+                                result.getLastLoginAt() != null
                 )
                 .verifyComplete();
 
@@ -359,7 +359,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         // Arrange
         String longPassword = "a".repeat(200); // Password muy largo
         String hashedLongPassword = "hashedLongPassword";
-        
+
         UsuarioCredencial credencialPasswordLargo = usuarioCredencial.toBuilder()
                 .password(longPassword)
                 .build();
@@ -384,7 +384,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(credencialPasswordLargo))
                 .expectNextMatches(result ->
                         result.getEmail().equals("test@example.com") &&
-                        result.getIdUsuario().equals(100)
+                                result.getIdUsuario().equals(100)
                 )
                 .verifyComplete();
 
@@ -420,11 +420,11 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(credencialEmailEspecial))
                 .expectNextMatches(result ->
                         result.getEmail().equals(specialEmail) &&
-                        result.getIdUsuario().equals(100)
+                                result.getIdUsuario().equals(100)
                 )
                 .verifyComplete();
 
-        verify(logGateway, atLeast(1)).debug(eq("UsuarioCredentialAdapter"), contains(specialEmail));
+        verify(logGateway, times(2)).debug(eq("UsuarioCredentialAdapter"), anyString());
     }
 
     @Test
@@ -455,7 +455,7 @@ class UsuarioCredentialReactiveRepositoryAdapterTest {
         StepVerifier.create(adapter.save(credencialInactivo))
                 .expectNextMatches(result ->
                         result.getEmail().equals("test@example.com") &&
-                        !result.isActive()
+                                !result.isActive()
                 )
                 .verifyComplete();
     }

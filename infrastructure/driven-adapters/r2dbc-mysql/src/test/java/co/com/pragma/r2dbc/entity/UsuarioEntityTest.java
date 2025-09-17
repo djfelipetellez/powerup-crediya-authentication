@@ -11,7 +11,7 @@ class UsuarioEntityTest {
     @Test
     void noArgsConstructor_shouldCreateEmptyInstance() {
         UsuarioEntity entity = new UsuarioEntity();
-        
+
         assertNull(entity.getIdUsuario());
         assertNull(entity.getNombre());
         assertNull(entity.getApellido());
@@ -32,11 +32,11 @@ class UsuarioEntityTest {
         String telefono = "3001234567";
         BigDecimal salarioBase = new BigDecimal("2500000.00");
         Integer idRol = 2;
-        
+
         UsuarioEntity entity = new UsuarioEntity(
                 idUsuario, nombre, apellido, email, documentoIdentidad, telefono, salarioBase, idRol
         );
-        
+
         assertEquals(idUsuario, entity.getIdUsuario());
         assertEquals(nombre, entity.getNombre());
         assertEquals(apellido, entity.getApellido());
@@ -57,7 +57,7 @@ class UsuarioEntityTest {
         String telefono = "3109876543";
         BigDecimal salarioBase = new BigDecimal("1800000.50");
         Integer idRol = 3;
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .idUsuario(idUsuario)
                 .nombre(nombre)
@@ -68,7 +68,7 @@ class UsuarioEntityTest {
                 .salarioBase(salarioBase)
                 .idRol(idRol)
                 .build();
-        
+
         assertEquals(idUsuario, entity.getIdUsuario());
         assertEquals(nombre, entity.getNombre());
         assertEquals(apellido, entity.getApellido());
@@ -84,13 +84,13 @@ class UsuarioEntityTest {
         String nombre = "Carlos";
         String email = "carlos@test.com";
         Integer idRol = 1;
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .nombre(nombre)
                 .email(email)
                 .idRol(idRol)
                 .build();
-        
+
         assertNull(entity.getIdUsuario());
         assertEquals(nombre, entity.getNombre());
         assertNull(entity.getApellido());
@@ -112,7 +112,7 @@ class UsuarioEntityTest {
         String telefono = "3205556677";
         BigDecimal salarioBase = new BigDecimal("3000000.75");
         Integer idRol = 1;
-        
+
         entity.setIdUsuario(idUsuario);
         entity.setNombre(nombre);
         entity.setApellido(apellido);
@@ -121,7 +121,7 @@ class UsuarioEntityTest {
         entity.setTelefono(telefono);
         entity.setSalarioBase(salarioBase);
         entity.setIdRol(idRol);
-        
+
         assertEquals(idUsuario, entity.getIdUsuario());
         assertEquals(nombre, entity.getNombre());
         assertEquals(apellido, entity.getApellido());
@@ -140,7 +140,7 @@ class UsuarioEntityTest {
                 .email("test@example.com")
                 .idRol(1)
                 .build();
-        
+
         entity.setIdUsuario(null);
         entity.setNombre(null);
         entity.setApellido(null);
@@ -149,7 +149,7 @@ class UsuarioEntityTest {
         entity.setTelefono(null);
         entity.setSalarioBase(null);
         entity.setIdRol(null);
-        
+
         assertNull(entity.getIdUsuario());
         assertNull(entity.getNombre());
         assertNull(entity.getApellido());
@@ -164,15 +164,15 @@ class UsuarioEntityTest {
     void salarioBase_withDifferentPrecision_shouldMaintainValue() {
         BigDecimal salarioConDecimales = new BigDecimal("1234567.89");
         BigDecimal salarioSinDecimales = new BigDecimal("5000000");
-        
+
         UsuarioEntity entity1 = UsuarioEntity.builder()
                 .salarioBase(salarioConDecimales)
                 .build();
-        
+
         UsuarioEntity entity2 = UsuarioEntity.builder()
                 .salarioBase(salarioSinDecimales)
                 .build();
-        
+
         assertEquals(salarioConDecimales, entity1.getSalarioBase());
         assertEquals(salarioSinDecimales, entity2.getSalarioBase());
     }
@@ -181,12 +181,12 @@ class UsuarioEntityTest {
     void nombre_withSpecialCharacters_shouldBeAccepted() {
         String nombreEspecial = "José María";
         String apellidoEspecial = "González-Rodríguez";
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .nombre(nombreEspecial)
                 .apellido(apellidoEspecial)
                 .build();
-        
+
         assertEquals(nombreEspecial, entity.getNombre());
         assertEquals(apellidoEspecial, entity.getApellido());
     }
@@ -194,11 +194,11 @@ class UsuarioEntityTest {
     @Test
     void email_withSpecialCharacters_shouldBeAccepted() {
         String emailEspecial = "user+test@sub-domain.example.com";
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .email(emailEspecial)
                 .build();
-        
+
         assertEquals(emailEspecial, entity.getEmail());
     }
 
@@ -207,19 +207,19 @@ class UsuarioEntityTest {
         String documento1 = "12345678";
         String documento2 = "CC-12345678";
         String documento3 = "1.234.567-8";
-        
+
         UsuarioEntity entity1 = UsuarioEntity.builder()
                 .documentoIdentidad(documento1)
                 .build();
-        
+
         UsuarioEntity entity2 = UsuarioEntity.builder()
                 .documentoIdentidad(documento2)
                 .build();
-        
+
         UsuarioEntity entity3 = UsuarioEntity.builder()
                 .documentoIdentidad(documento3)
                 .build();
-        
+
         assertEquals(documento1, entity1.getDocumentoIdentidad());
         assertEquals(documento2, entity2.getDocumentoIdentidad());
         assertEquals(documento3, entity3.getDocumentoIdentidad());
@@ -230,19 +230,19 @@ class UsuarioEntityTest {
         String telefono1 = "3001234567";
         String telefono2 = "+57-300-123-4567";
         String telefono3 = "(300) 123-4567";
-        
+
         UsuarioEntity entity1 = UsuarioEntity.builder()
                 .telefono(telefono1)
                 .build();
-        
+
         UsuarioEntity entity2 = UsuarioEntity.builder()
                 .telefono(telefono2)
                 .build();
-        
+
         UsuarioEntity entity3 = UsuarioEntity.builder()
                 .telefono(telefono3)
                 .build();
-        
+
         assertEquals(telefono1, entity1.getTelefono());
         assertEquals(telefono2, entity2.getTelefono());
         assertEquals(telefono3, entity3.getTelefono());
@@ -253,19 +253,19 @@ class UsuarioEntityTest {
         Integer idRolAdmin = 1;
         Integer idRolAsesor = 2;
         Integer idRolCliente = 3;
-        
+
         UsuarioEntity entityAdmin = UsuarioEntity.builder()
                 .idRol(idRolAdmin)
                 .build();
-        
+
         UsuarioEntity entityAsesor = UsuarioEntity.builder()
                 .idRol(idRolAsesor)
                 .build();
-        
+
         UsuarioEntity entityCliente = UsuarioEntity.builder()
                 .idRol(idRolCliente)
                 .build();
-        
+
         assertEquals(idRolAdmin, entityAdmin.getIdRol());
         assertEquals(idRolAsesor, entityAsesor.getIdRol());
         assertEquals(idRolCliente, entityCliente.getIdRol());
@@ -274,22 +274,22 @@ class UsuarioEntityTest {
     @Test
     void salarioBase_withLargeValues_shouldBeAccepted() {
         BigDecimal salarioGrande = new BigDecimal("999999999.99");
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .salarioBase(salarioGrande)
                 .build();
-        
+
         assertEquals(salarioGrande, entity.getSalarioBase());
     }
 
     @Test
     void salarioBase_withZeroValue_shouldBeAccepted() {
         BigDecimal salarioCero = BigDecimal.ZERO;
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .salarioBase(salarioCero)
                 .build();
-        
+
         assertEquals(salarioCero, entity.getSalarioBase());
     }
 
@@ -305,7 +305,7 @@ class UsuarioEntityTest {
                 .salarioBase(new BigDecimal("2000000"))
                 .idRol(3)
                 .build();
-        
+
         assertNotNull(entity);
         assertEquals(1, entity.getIdUsuario());
         assertEquals("Test", entity.getNombre());
@@ -320,11 +320,11 @@ class UsuarioEntityTest {
     @Test
     void idUsuario_withLargeValue_shouldBeAccepted() {
         Integer largeId = Integer.MAX_VALUE;
-        
+
         UsuarioEntity entity = UsuarioEntity.builder()
                 .idUsuario(largeId)
                 .build();
-        
+
         assertEquals(largeId, entity.getIdUsuario());
     }
 
@@ -337,7 +337,7 @@ class UsuarioEntityTest {
                 .documentoIdentidad("")
                 .telefono("")
                 .build();
-        
+
         assertEquals("", entity.getNombre());
         assertEquals("", entity.getApellido());
         assertEquals("", entity.getEmail());

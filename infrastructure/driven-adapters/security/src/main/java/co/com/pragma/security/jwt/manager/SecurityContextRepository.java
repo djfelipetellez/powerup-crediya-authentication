@@ -32,7 +32,7 @@ public class SecurityContextRepository implements ServerSecurityContextRepositor
         // Obtener el token que el JwtFilter puso en los atributos del exchange
         String token = exchange.getAttribute("token");
 
-        if (token != null) {
+        if (token != null && !token.isEmpty()) {
             logGateway.info("security-context", "Cargando contexto de seguridad para token");
 
             // Crear authentication object con el token

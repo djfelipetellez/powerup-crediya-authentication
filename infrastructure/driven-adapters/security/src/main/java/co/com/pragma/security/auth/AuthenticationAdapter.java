@@ -12,8 +12,8 @@ import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.usuario.Usuario;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import co.com.pragma.security.jwt.provider.JwtProvider;
-import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -89,9 +89,9 @@ public class AuthenticationAdapter implements AuthenticationGateway {
                 Long exp = claims.getExpiration().getTime();
 
                 List<Map<String, String>> roles = (List<Map<String, String>>) claims.get("roles");
-                String role = roles != null && !roles.isEmpty() 
-                    ? roles.getFirst().get("authority").replace("ROLE_", "")
-                    : "UNKNOWN";
+                String role = roles != null && !roles.isEmpty()
+                        ? roles.getFirst().get("authority").replace("ROLE_", "")
+                        : "UNKNOWN";
 
                 logGateway.info("AuthenticationAdapter", String.format("Token válido para usuario: %s, rol: %s", email, role));
 

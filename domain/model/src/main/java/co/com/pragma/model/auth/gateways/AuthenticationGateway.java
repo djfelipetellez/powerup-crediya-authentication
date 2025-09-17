@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 public interface AuthenticationGateway {
 
     Mono<TokenAutenticacion> authenticateLogIn(LoginCredenciales loginCredenciales);
-    
+
     Mono<TokenValidationResult> validateToken(String token);
 
 }

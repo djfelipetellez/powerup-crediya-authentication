@@ -9,7 +9,7 @@ class RolEntityTest {
     @Test
     void noArgsConstructor_shouldCreateEmptyInstance() {
         RolEntity entity = new RolEntity();
-        
+
         assertNull(entity.getIdRol());
         assertNull(entity.getNombre());
         assertNull(entity.getDescripcion());
@@ -20,9 +20,9 @@ class RolEntityTest {
         Integer idRol = 1;
         String nombre = "ADMIN";
         String descripcion = "Administrador del sistema";
-        
+
         RolEntity entity = new RolEntity(idRol, nombre, descripcion);
-        
+
         assertEquals(idRol, entity.getIdRol());
         assertEquals(nombre, entity.getNombre());
         assertEquals(descripcion, entity.getDescripcion());
@@ -33,13 +33,13 @@ class RolEntityTest {
         Integer idRol = 2;
         String nombre = "ASESOR";
         String descripcion = "Asesor del banco";
-        
+
         RolEntity entity = RolEntity.builder()
                 .idRol(idRol)
                 .nombre(nombre)
                 .descripcion(descripcion)
                 .build();
-        
+
         assertEquals(idRol, entity.getIdRol());
         assertEquals(nombre, entity.getNombre());
         assertEquals(descripcion, entity.getDescripcion());
@@ -48,11 +48,11 @@ class RolEntityTest {
     @Test
     void builder_withPartialFields_shouldCreateInstance() {
         String nombre = "CLIENTE";
-        
+
         RolEntity entity = RolEntity.builder()
                 .nombre(nombre)
                 .build();
-        
+
         assertNull(entity.getIdRol());
         assertEquals(nombre, entity.getNombre());
         assertNull(entity.getDescripcion());
@@ -64,11 +64,11 @@ class RolEntityTest {
         Integer idRol = 3;
         String nombre = "CLIENTE";
         String descripcion = "Cliente del banco";
-        
+
         entity.setIdRol(idRol);
         entity.setNombre(nombre);
         entity.setDescripcion(descripcion);
-        
+
         assertEquals(idRol, entity.getIdRol());
         assertEquals(nombre, entity.getNombre());
         assertEquals(descripcion, entity.getDescripcion());
@@ -81,11 +81,11 @@ class RolEntityTest {
                 .nombre("TEST")
                 .descripcion("Test role")
                 .build();
-        
+
         entity.setIdRol(null);
         entity.setNombre(null);
         entity.setDescripcion(null);
-        
+
         assertNull(entity.getIdRol());
         assertNull(entity.getNombre());
         assertNull(entity.getDescripcion());
@@ -96,15 +96,15 @@ class RolEntityTest {
         RolEntity adminEntity = RolEntity.builder()
                 .nombre("ADMIN")
                 .build();
-        
+
         RolEntity asesorEntity = RolEntity.builder()
                 .nombre("ASESOR")
                 .build();
-        
+
         RolEntity clienteEntity = RolEntity.builder()
                 .nombre("CLIENTE")
                 .build();
-        
+
         assertEquals("ADMIN", adminEntity.getNombre());
         assertEquals("ASESOR", asesorEntity.getNombre());
         assertEquals("CLIENTE", clienteEntity.getNombre());
@@ -115,22 +115,22 @@ class RolEntityTest {
         String descripcionLarga = "Esta es una descripción muy larga que podría contener " +
                 "múltiples líneas de texto y caracteres especiales como áéíóú, ñÑ, " +
                 "y símbolos como @#$%&*()_+-=[]{}|;':\",./<>?";
-        
+
         RolEntity entity = RolEntity.builder()
                 .descripcion(descripcionLarga)
                 .build();
-        
+
         assertEquals(descripcionLarga, entity.getDescripcion());
     }
 
     @Test
     void nombre_withSpecialCharacters_shouldBeAccepted() {
         String nombreEspecial = "ADMIN_SUPER";
-        
+
         RolEntity entity = RolEntity.builder()
                 .nombre(nombreEspecial)
                 .build();
-        
+
         assertEquals(nombreEspecial, entity.getNombre());
     }
 
@@ -139,19 +139,19 @@ class RolEntityTest {
         Integer idRolUno = 1;
         Integer idRolDos = 2;
         Integer idRolTres = 3;
-        
+
         RolEntity entity1 = RolEntity.builder()
                 .idRol(idRolUno)
                 .build();
-        
+
         RolEntity entity2 = RolEntity.builder()
                 .idRol(idRolDos)
                 .build();
-        
+
         RolEntity entity3 = RolEntity.builder()
                 .idRol(idRolTres)
                 .build();
-        
+
         assertEquals(idRolUno, entity1.getIdRol());
         assertEquals(idRolDos, entity2.getIdRol());
         assertEquals(idRolTres, entity3.getIdRol());
@@ -164,7 +164,7 @@ class RolEntityTest {
                 .nombre("ADMIN")
                 .descripcion("Administrador del sistema")
                 .build();
-        
+
         assertNotNull(entity);
         assertEquals(1, entity.getIdRol());
         assertEquals("ADMIN", entity.getNombre());
@@ -177,7 +177,7 @@ class RolEntityTest {
                 .nombre("")
                 .descripcion("")
                 .build();
-        
+
         assertEquals("", entity.getNombre());
         assertEquals("", entity.getDescripcion());
     }
@@ -185,33 +185,33 @@ class RolEntityTest {
     @Test
     void idRol_withLargeValue_shouldBeAccepted() {
         Integer largeId = Integer.MAX_VALUE;
-        
+
         RolEntity entity = RolEntity.builder()
                 .idRol(largeId)
                 .build();
-        
+
         assertEquals(largeId, entity.getIdRol());
     }
 
     @Test
     void idRol_withZeroValue_shouldBeAccepted() {
         Integer zeroId = 0;
-        
+
         RolEntity entity = RolEntity.builder()
                 .idRol(zeroId)
                 .build();
-        
+
         assertEquals(zeroId, entity.getIdRol());
     }
 
     @Test
     void descripcion_withSpecialCharacters_shouldBeAccepted() {
         String descripcionEspecial = "Rol para administradores: @usuarios & $sistemas (100% confiables)";
-        
+
         RolEntity entity = RolEntity.builder()
                 .descripcion(descripcionEspecial)
                 .build();
-        
+
         assertEquals(descripcionEspecial, entity.getDescripcion());
     }
 
@@ -220,17 +220,17 @@ class RolEntityTest {
         RolEntity adminEntity = new RolEntity(1, "ADMIN", "Administrador del sistema con permisos completos");
         RolEntity asesorEntity = new RolEntity(2, "ASESOR", "Asesor bancario para atención al cliente");
         RolEntity clienteEntity = new RolEntity(3, "CLIENTE", "Cliente del banco que solicita préstamos");
-        
+
         // Verificar ADMIN
         assertEquals(1, adminEntity.getIdRol());
         assertEquals("ADMIN", adminEntity.getNombre());
         assertEquals("Administrador del sistema con permisos completos", adminEntity.getDescripcion());
-        
+
         // Verificar ASESOR
         assertEquals(2, asesorEntity.getIdRol());
         assertEquals("ASESOR", asesorEntity.getNombre());
         assertEquals("Asesor bancario para atención al cliente", asesorEntity.getDescripcion());
-        
+
         // Verificar CLIENTE
         assertEquals(3, clienteEntity.getIdRol());
         assertEquals("CLIENTE", clienteEntity.getNombre());

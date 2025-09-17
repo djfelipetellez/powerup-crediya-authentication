@@ -11,7 +11,7 @@ class UserCredentialEntityTest {
     @Test
     void noArgsConstructor_shouldCreateEmptyInstance() {
         UserCredentialEntity entity = new UserCredentialEntity();
-        
+
         assertNull(entity.getId());
         assertNull(entity.getEmail());
         assertNull(entity.getPassword());
@@ -30,11 +30,11 @@ class UserCredentialEntityTest {
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime lastLoginAt = LocalDateTime.now().minusHours(1);
         boolean active = true;
-        
+
         UserCredentialEntity entity = new UserCredentialEntity(
                 id, email, password, idUsuario, createdAt, lastLoginAt, active
         );
-        
+
         assertEquals(id, entity.getId());
         assertEquals(email, entity.getEmail());
         assertEquals(password, entity.getPassword());
@@ -53,7 +53,7 @@ class UserCredentialEntityTest {
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime lastLoginAt = LocalDateTime.now().minusDays(1);
         boolean active = false;
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .id(id)
                 .email(email)
@@ -63,7 +63,7 @@ class UserCredentialEntityTest {
                 .lastLoginAt(lastLoginAt)
                 .active(active)
                 .build();
-        
+
         assertEquals(id, entity.getId());
         assertEquals(email, entity.getEmail());
         assertEquals(password, entity.getPassword());
@@ -77,13 +77,13 @@ class UserCredentialEntityTest {
     void builder_withPartialFields_shouldCreateInstance() {
         String email = "partial@test.com";
         Integer idUsuario = 300;
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .email(email)
                 .idUsuario(idUsuario)
                 .active(true)
                 .build();
-        
+
         assertNull(entity.getId());
         assertEquals(email, entity.getEmail());
         assertNull(entity.getPassword());
@@ -102,13 +102,13 @@ class UserCredentialEntityTest {
                 .idUsuario(100)
                 .active(true)
                 .build();
-        
+
         UserCredentialEntity modified = original.toBuilder()
                 .email("modified@test.com")
                 .password("newPassword")
                 .active(false)
                 .build();
-        
+
         assertEquals(original.getId(), modified.getId());
         assertEquals("modified@test.com", modified.getEmail());
         assertEquals("newPassword", modified.getPassword());
@@ -128,7 +128,7 @@ class UserCredentialEntityTest {
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime lastLoginAt = LocalDateTime.now().minusMinutes(30);
         boolean active = true;
-        
+
         entity.setId(id);
         entity.setEmail(email);
         entity.setPassword(password);
@@ -136,7 +136,7 @@ class UserCredentialEntityTest {
         entity.setCreatedAt(createdAt);
         entity.setLastLoginAt(lastLoginAt);
         entity.setActive(active);
-        
+
         assertEquals(id, entity.getId());
         assertEquals(email, entity.getEmail());
         assertEquals(password, entity.getPassword());
@@ -155,7 +155,7 @@ class UserCredentialEntityTest {
                 .idUsuario(100)
                 .active(true)
                 .build();
-        
+
         entity.setId(null);
         entity.setEmail(null);
         entity.setPassword(null);
@@ -163,7 +163,7 @@ class UserCredentialEntityTest {
         entity.setCreatedAt(null);
         entity.setLastLoginAt(null);
         entity.setActive(false);
-        
+
         assertNull(entity.getId());
         assertNull(entity.getEmail());
         assertNull(entity.getPassword());
@@ -176,17 +176,17 @@ class UserCredentialEntityTest {
     @Test
     void active_defaultValue_shouldBeFalse() {
         UserCredentialEntity entity = new UserCredentialEntity();
-        
+
         assertFalse(entity.isActive());
     }
 
     @Test
     void active_toggleValue_shouldWork() {
         UserCredentialEntity entity = new UserCredentialEntity();
-        
+
         entity.setActive(true);
         assertTrue(entity.isActive());
-        
+
         entity.setActive(false);
         assertFalse(entity.isActive());
     }
@@ -194,34 +194,34 @@ class UserCredentialEntityTest {
     @Test
     void email_withSpecialCharacters_shouldBeAccepted() {
         String specialEmail = "user+test@sub-domain.example.com";
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .email(specialEmail)
                 .build();
-        
+
         assertEquals(specialEmail, entity.getEmail());
     }
 
     @Test
     void password_withComplexValue_shouldBeAccepted() {
         String complexPassword = "P@ssw0rd!2023#$%^&*()_+-=[]{}|;':\",./<>?";
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .password(complexPassword)
                 .build();
-        
+
         assertEquals(complexPassword, entity.getPassword());
     }
 
     @Test
     void dateTime_withPreciseValues_shouldMaintainPrecision() {
         LocalDateTime preciseTime = LocalDateTime.of(2023, 12, 25, 14, 30, 45, 123456789);
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .createdAt(preciseTime)
                 .lastLoginAt(preciseTime.minusHours(2))
                 .build();
-        
+
         assertEquals(preciseTime, entity.getCreatedAt());
         assertEquals(preciseTime.minusHours(2), entity.getLastLoginAt());
     }
@@ -229,18 +229,18 @@ class UserCredentialEntityTest {
     @Test
     void idUsuario_withLargeValue_shouldBeAccepted() {
         Integer largeId = Integer.MAX_VALUE;
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .idUsuario(largeId)
                 .build();
-        
+
         assertEquals(largeId, entity.getIdUsuario());
     }
 
     @Test
     void builder_chainedCalls_shouldWork() {
         LocalDateTime now = LocalDateTime.now();
-        
+
         UserCredentialEntity entity = UserCredentialEntity.builder()
                 .id(1)
                 .email("chain@test.com")
@@ -250,7 +250,7 @@ class UserCredentialEntityTest {
                 .lastLoginAt(now.minusHours(1))
                 .active(true)
                 .build();
-        
+
         assertNotNull(entity);
         assertEquals(1, entity.getId());
         assertEquals("chain@test.com", entity.getEmail());
