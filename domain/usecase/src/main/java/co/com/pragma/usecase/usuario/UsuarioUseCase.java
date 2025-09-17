@@ -1,5 +1,7 @@
 package co.com.pragma.usecase.usuario;
 
+import co.com.pragma.model.auth.UsuarioCredencial;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
@@ -10,17 +12,19 @@ import co.com.pragma.model.usuario.gateways.UsuarioValidator;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @RequiredArgsConstructor
 public class UsuarioUseCase {
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final UsuarioValidator usuarioValidator;
+    private final UsuarioCredencialRepository usuarioCredencialRepository;
     private final LogGateway loggingGateway;
 
-    public Mono<Usuario> registrarUsuario(Usuario usuario, Integer roleId) {
+    public Mono<Usuario> registrarUsuario(Usuario usuario, Integer roleId, String password) {
         loggingGateway.info("UsuarioUseCase", "Iniciando registro de usuario: " + roleId);
-
 
         return Mono.justOrEmpty(usuario)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(Constantes.MSG_USUARIO_NULL)))
@@ -30,12 +34,27 @@ public class UsuarioUseCase {
                                 .then())
                         .then(usuarioRepository.registrarUsuarioCompleto(validatedUser, roleId))
                 )
+                .flatMap(usuarioRegistrado -> crearCredencialesUsuario(usuarioRegistrado, password)
+                        .thenReturn(usuarioRegistrado)
+                )
                 .doOnSuccess(usuarioRegistrado ->
-                        loggingGateway.info("UsuarioUseCase", "Usuario registrado exitosamente: " + usuarioRegistrado.getEmail())
+                        loggingGateway.info("UsuarioUseCase", "Usuario y credenciales registradas exitosamente: " + usuarioRegistrado.getEmail())
                 )
                 .doOnError(error ->
                         loggingGateway.error("UsuarioUseCase", "Error al registrar usuario: " + error.getMessage(), error)
                 );
+    }
+
+    private Mono<UsuarioCredencial> crearCredencialesUsuario(Usuario usuario, String password) {
+        UsuarioCredencial credential = UsuarioCredencial.builder()
+                .email(usuario.getEmail())
+                .password(password) // Sin hashear - el adapter se encarga
+                .idUsuario(usuario.getIdUsuario())
+                .createdAt(LocalDateTime.now())
+                .active(true)
+                .build();
+
+        return usuarioCredencialRepository.save(credential);
     }
 
     public Mono<Void> validarExistenciaUsuario(String documentoIdentidad, String email) {
@@ -54,6 +73,5 @@ public class UsuarioUseCase {
                     }
                 });
     }
-
 
 }

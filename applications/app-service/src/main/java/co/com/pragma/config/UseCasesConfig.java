@@ -1,9 +1,13 @@
 package co.com.pragma.config;
 
+import co.com.pragma.model.auth.gateways.AuthenticationGateway;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioRepository;
 import co.com.pragma.model.usuario.gateways.UsuarioValidator;
+import co.com.pragma.usecase.auth.AuthorizationUseCase;
+import co.com.pragma.usecase.auth.LoginAuthenticationUseCase;
 import co.com.pragma.usecase.rol.RolUseCase;
 import co.com.pragma.usecase.usuario.UsuarioUseCase;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +33,17 @@ public class UseCasesConfig {
     }
 
     @Bean
-    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolRepository rolRepository, UsuarioValidator usuarioValidator, LogGateway logGateway) {
-        return new UsuarioUseCase(usuarioRepository, rolRepository, usuarioValidator, logGateway);
+    public UsuarioUseCase usuarioUseCase(UsuarioRepository usuarioRepository, RolRepository rolRepository, UsuarioValidator usuarioValidator, UsuarioCredencialRepository usuarioCredencialRepository, LogGateway logGateway) {
+        return new UsuarioUseCase(usuarioRepository, rolRepository, usuarioValidator, usuarioCredencialRepository, logGateway);
+    }
+
+    @Bean
+    public LoginAuthenticationUseCase loginAuthenticationUseCase(AuthenticationGateway authenticationGateway, LogGateway logGateway) {
+        return new LoginAuthenticationUseCase(authenticationGateway, logGateway);
+    }
+
+    @Bean
+    public AuthorizationUseCase authorizationUseCase(UsuarioRepository usuarioRepository, LogGateway logGateway) {
+        return new AuthorizationUseCase(usuarioRepository, logGateway);
     }
 }

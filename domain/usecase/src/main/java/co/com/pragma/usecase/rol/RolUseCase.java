@@ -10,17 +10,17 @@ import reactor.core.publisher.Mono;
 public class RolUseCase {
 
     private final RolRepository rolRepository;
-    private final LogGateway loggGateway;
+    private final LogGateway logGateway;
 
     public Mono<Rol> registrarRol(Rol rol) {
-        loggGateway.info("RolUseCase", "Iniciando registro de rol: " + (rol != null ? rol.getNombre() : "null"));
+        logGateway.info("RolUseCase", "Iniciando registro de rol: " + (rol != null ? rol.getNombre() : "null"));
 
         return rolRepository.save(rol)
                 .doOnSuccess(rolRegistrado ->
-                        loggGateway.info("RolUseCase", "Rol registrado exitosamente: " + rolRegistrado.getNombre())
+                        logGateway.info("RolUseCase", "Rol registrado exitosamente: " + rolRegistrado.getNombre())
                 )
                 .doOnError(error ->
-                        loggGateway.error("RolUseCase", "Error al registrar rol: " + error.getMessage(), error)
+                        logGateway.error("RolUseCase", "Error al registrar rol: " + error.getMessage(), error)
                 );
     }
 

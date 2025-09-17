@@ -1,6 +1,7 @@
 package co.com.pragma.api.exception;
 
 import co.com.pragma.api.util.ApiConstantes;
+import co.com.pragma.model.auth.exceptions.AuthenticationException;
 import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
@@ -14,15 +15,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
@@ -46,8 +47,8 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     private Mono<ServerResponse> renderErrorResponse(final ServerRequest request) {
         Throwable error = getError(request);
         String action = ApiConstantes.LOG_GLOBAL_EXCEPTION_HANDLER;
-        final Map<String, Object> errorResponse = new HashMap<>();
         final HttpStatus httpStatus;
+        final ProblemDetail problemDetail;
 
         switch (error) {
             case ConstraintViolationException ex -> {
@@ -56,8 +57,8 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 List<String> constraintErrors = ex.getConstraintViolations().stream()
                         .map(ConstraintViolation::getMessage)
                         .collect(Collectors.toList());
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, ApiConstantes.CONSTRAINT_VIOLATION);
-                errorResponse.put(ApiConstantes.KEY_ERRORS, constraintErrors);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.CONSTRAINT_VIOLATION);
+                problemDetail.setProperty("errors", constraintErrors);
             }
             case DataIntegrityViolationException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
@@ -68,36 +69,44 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                     message = ApiConstantes.MSG_DATA_INTEGRITY_EMAIL;
                 }
                 logGateway.warn(action, ApiConstantes.LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, message);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, message);
             }
             case UsuarioNotFoundException ex -> {
                 httpStatus = HttpStatus.NOT_FOUND;
                 logGateway.warn(action, "Usuario no encontrado: " + ex.getMessage(), ex);
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
             }
             case BusinessRuleException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
                 logGateway.warn(action, "Regla de negocio violada: " + ex.getMessage(), ex);
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+            }
+            case AuthenticationException ex -> {
+                httpStatus = HttpStatus.UNAUTHORIZED;
+                logGateway.warn(action, "Credenciales inválidas: " + ex.getMessage(), ex);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+            }
+            case AccessDeniedException ex -> {
+                httpStatus = HttpStatus.FORBIDDEN;
+                logGateway.warn(action, "Acceso denegado: " + ex.getMessage(), ex);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.MSG_403);
             }
             case IllegalArgumentException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
                 logGateway.warn(action, ApiConstantes.LOG_CLIENT_ERROR + ex.getMessage(), ex);
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, ex.getMessage());
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
             }
             default -> {
                 httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
                 logGateway.error(action, ApiConstantes.LOG_SERVER_ERROR + error.getMessage(), error);
-                errorResponse.put(ApiConstantes.KEY_MESSAGE, ApiConstantes.MSG_UNEXPECTED_ERROR);
+                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.MSG_UNEXPECTED_ERROR);
             }
         }
 
-        errorResponse.put(ApiConstantes.KEY_STATUS, httpStatus.value());
-        errorResponse.put(ApiConstantes.KEY_ERROR, httpStatus.getReasonPhrase());
-        errorResponse.put(ApiConstantes.KEY_PATH, request.path());
+        problemDetail.setInstance(request.uri());
 
         return ServerResponse.status(httpStatus)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(errorResponse));
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(BodyInserters.fromValue(problemDetail));
     }
 }

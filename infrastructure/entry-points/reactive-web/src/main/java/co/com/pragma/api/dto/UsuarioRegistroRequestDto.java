@@ -12,7 +12,7 @@ public record UsuarioRegistroRequestDto(@NotBlank(message = "El nombre es obliga
                                         @NotBlank(message = "El documento de identidad es obligatorio") String documentoIdentidad,
                                         String telefono,
                                         @NotNull(message = "El salario base es obligatorio") BigDecimal salarioBase,
-                                        // Remove salary validation
+                                        @NotBlank(message = "La contraseña es obligatoria") String password,
                                         @NotNull(message = "El ID del rol es obligatorio") Integer idRol) {
 
 }

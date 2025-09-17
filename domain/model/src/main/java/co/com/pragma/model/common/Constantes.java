@@ -18,4 +18,17 @@ public final class Constantes {
     // === BUSINESS RULES ===
     public static final String SALARY_MIN = "0";
     public static final String SALARY_MAX = "15000000";
+
+    // === SECURITY MESSAGES ===
+    public static final String MSG_TOKEN_NOT_FOUND = "Token de autorización requerido";
+    public static final String MSG_INVALID_TOKEN_FORMAT = "Formato de autorización inválido";
+    public static final String MSG_ACCESS_PUBLIC_ROUTE = "Acceso permitido a ruta pública";
+    public static final String MSG_TOKEN_EXTRACTED = "Token extraído exitosamente";
+    public static final String MSG_INVALID_CREDENTIALS = "Credenciales inválidas";
+    public static final String MSG_USER_INACTIVE = "Usuario inactivo";
+
+    // === AUTHENTICATION LOG MESSAGES ===
+    public static final String LOG_AUTH_START = "Iniciando autenticación para email: ";
+    public static final String LOG_AUTH_SUCCESS = "Autenticación exitosa para email: ";
+    public static final String LOG_AUTH_ERROR = "Error en autenticación: ";
 }

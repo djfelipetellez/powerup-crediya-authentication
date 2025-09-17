@@ -1,5 +1,8 @@
 server:
   port: 8080
+  error:
+    whitelabel:
+      enabled: false
 spring:
   r2dbc:
     url: r2dbc:mysql://localhost:3306/auth_db
@@ -17,6 +20,10 @@ spring:
     name: "powerup-crediya-authentication"
   devtools:
     add-properties: false
+  web:
+    resources:
+      add-mappings: false
+
 management:
   endpoints:
     web:
@@ -29,6 +36,11 @@ management:
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
 
+# JWT Configuration
+jwt:
+  secret: "mySecretKey12345678901234567890123456789012345678901234567890"
+  expiration: 86400000 # 24 horas en milisegundos
+
 # API Paths Configuration
 api:
   paths:
@@ -36,6 +48,9 @@ api:
       base: "/api/v1/usuarios"
       validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"
     roles: "/api/v1/roles"
+    auth:
+      login: "/api/v1/auth/login"
+      validate-token: "/api/v1/auth/validate-token"
 
 # SpringDoc OpenAPI Configuration
 springdoc:
@@ -49,8 +64,5 @@ springdoc:
     description: "API para la gestion de usuarios y roles de crediya"
     version: "1.0.0"
     contact:
-      name: "Pragma Team"
-      email: "support@pragma.com"
-    license:
-      name: "MIT"
-      url: "https://opensource.org/licenses/MIT"
+      name: "Felipe Tellez"
+      email: "juanfelipetellezacosta@gmail.com"

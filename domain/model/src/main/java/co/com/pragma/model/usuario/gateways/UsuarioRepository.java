@@ -7,6 +7,8 @@ public interface UsuarioRepository {
 
     Mono<Usuario> save(Usuario usuario);
 
+    Mono<Usuario> findById(Integer id);
+
     Mono<Usuario> findByEmail(String email);
 
     Mono<Usuario> findByDocumentoIdentidadAndEmail(String documentoIdentidad, String email);
