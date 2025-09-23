@@ -1,11 +1,8 @@
 package co.com.pragma.api.exception;
 
-import co.com.pragma.api.util.ApiConstantes;
-import co.com.pragma.model.auth.exceptions.AuthenticationException;
 import co.com.pragma.model.common.exceptions.BusinessRuleException;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.usuario.exceptions.UsuarioNotFoundException;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
@@ -17,14 +14,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.*;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static co.com.pragma.api.util.ApiConstantes.*;
 
 @Component
 @Order(-2)
@@ -46,63 +45,119 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
     private Mono<ServerResponse> renderErrorResponse(final ServerRequest request) {
         Throwable error = getError(request);
-        String action = ApiConstantes.LOG_GLOBAL_EXCEPTION_HANDLER;
+        String action = LOG_GLOBAL_EXCEPTION_HANDLER;
         final HttpStatus httpStatus;
         final ProblemDetail problemDetail;
 
         switch (error) {
             case ConstraintViolationException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
-                logGateway.warn(action, ApiConstantes.CONSTRAINT_VIOLATION + ex.getMessage(), ex);
-                List<String> constraintErrors = ex.getConstraintViolations().stream()
-                        .map(ConstraintViolation::getMessage)
+                logGateway.warn(action, CONSTRAINT_VIOLATION + ex.getMessage(), ex);
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_VALIDATION_FAILED));
+                problemDetail.setTitle(TITLE_VALIDATION_FAILED);
+                problemDetail.setDetail(DETAIL_VALIDATION_FAILED);
+
+                // Información valiosa adicional
+                List<String> validationErrors = ex.getConstraintViolations().stream()
+                        .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
                         .collect(Collectors.toList());
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.CONSTRAINT_VIOLATION);
-                problemDetail.setProperty("errors", constraintErrors);
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_VALIDATION_FAILED);
+                problemDetail.setProperty(PROPERTY_VALIDATION_ERRORS, validationErrors);
             }
             case DataIntegrityViolationException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
-                String message = ApiConstantes.MSG_DATA_INTEGRITY_VIOLATION;
+                logGateway.warn(action, LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_DATA_CONFLICT));
+                problemDetail.setTitle(TITLE_DATA_CONFLICT);
+                problemDetail.setDetail(DETAIL_DATA_CONFLICT);
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_DOCUMENT);
+
+                // Información específica según el campo en conflicto
                 if (ex.getMessage().toLowerCase().contains("documento_identidad")) {
-                    message = ApiConstantes.MSG_DATA_INTEGRITY_DOCUMENT;
+                    problemDetail.setProperty(PROPERTY_CONFLICT_FIELD, "documento_identidad");
+                    problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_DOCUMENT);
+                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_USE_DIFFERENT_DOCUMENT);
                 } else if (ex.getMessage().toLowerCase().contains("email")) {
-                    message = ApiConstantes.MSG_DATA_INTEGRITY_EMAIL;
+                    problemDetail.setProperty(PROPERTY_CONFLICT_FIELD, "email");
+                    problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_EMAIL);
+                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_USE_DIFFERENT_EMAIL);
                 }
-                logGateway.warn(action, ApiConstantes.LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, message);
+                problemDetail.setProperty(PROPERTY_INSTANCE_ID, request.exchange().getRequest().getId());
             }
             case UsuarioNotFoundException ex -> {
                 httpStatus = HttpStatus.NOT_FOUND;
                 logGateway.warn(action, "Usuario no encontrado: " + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_USER_NOT_FOUND));
+                problemDetail.setTitle(TITLE_USER_NOT_FOUND);
+                problemDetail.setDetail(DETAIL_USER_NOT_FOUND);
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_USER_NOT_FOUND);
+                problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_CHECK_EMAIL_ID);
+
+                // Información sobre criterios de búsqueda si están disponibles
+                if (ex.getMessage().contains("@")) {
+                    problemDetail.setProperty(PROPERTY_SEARCH_CRITERIA, "email");
+                } else {
+                    problemDetail.setProperty(PROPERTY_SEARCH_CRITERIA, "id");
+                }
             }
             case BusinessRuleException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
                 logGateway.warn(action, "Regla de negocio violada: " + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_BUSINESS_RULE));
+                problemDetail.setTitle(TITLE_BUSINESS_RULE);
+                problemDetail.setDetail(ex.getMessage()); // El mensaje específico de la regla
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_BUSINESS_RULE);
             }
-            case AuthenticationException ex -> {
+            case org.springframework.security.authentication.BadCredentialsException ex -> {
                 httpStatus = HttpStatus.UNAUTHORIZED;
                 logGateway.warn(action, "Credenciales inválidas: " + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
-            }
-            case AccessDeniedException ex -> {
-                httpStatus = HttpStatus.FORBIDDEN;
-                logGateway.warn(action, "Acceso denegado: " + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.MSG_403);
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                if (ex.getMessage() != null && ex.getMessage().contains("Token expirado")) {
+                    problemDetail.setType(URI.create(PROBLEM_TYPE_BASE + "token-expired"));
+                    problemDetail.setTitle("Token Expirado");
+                    problemDetail.setDetail("El token de autenticación ha expirado");
+                    problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_TOKEN_EXPIRED);
+                } else {
+                    problemDetail.setType(URI.create(PROBLEM_TYPE_BASE + "authentication-failed"));
+                    problemDetail.setTitle("Credenciales Inválidas");
+                    problemDetail.setDetail("Las credenciales proporcionadas son incorrectas");
+                    problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_AUTHENTICATION_FAILED);
+                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_CHECK_CREDENTIALS);
+                }
             }
             case IllegalArgumentException ex -> {
                 httpStatus = HttpStatus.BAD_REQUEST;
-                logGateway.warn(action, ApiConstantes.LOG_CLIENT_ERROR + ex.getMessage(), ex);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ex.getMessage());
+                logGateway.warn(action, LOG_CLIENT_ERROR + ex.getMessage(), ex);
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_INVALID_REQUEST));
+                problemDetail.setTitle(TITLE_INVALID_REQUEST);
+                problemDetail.setDetail(ex.getMessage());
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_INVALID_REQUEST);
             }
             default -> {
                 httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-                logGateway.error(action, ApiConstantes.LOG_SERVER_ERROR + error.getMessage(), error);
-                problemDetail = ProblemDetail.forStatusAndDetail(httpStatus, ApiConstantes.MSG_UNEXPECTED_ERROR);
+                logGateway.error(action, LOG_SERVER_ERROR + error.getMessage(), error);
+
+                problemDetail = ProblemDetail.forStatus(httpStatus);
+                problemDetail.setType(URI.create(PROBLEM_TYPE_SERVER_ERROR));
+                problemDetail.setTitle(TITLE_SERVER_ERROR);
+                problemDetail.setDetail(DETAIL_SERVER_ERROR);
+                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_SERVER_ERROR);
+                problemDetail.setProperty(PROPERTY_INSTANCE_ID, request.exchange().getRequest().getId());
             }
         }
 
+        // Establecer la instancia para rastreo
         problemDetail.setInstance(request.uri());
 
         return ServerResponse.status(httpStatus)

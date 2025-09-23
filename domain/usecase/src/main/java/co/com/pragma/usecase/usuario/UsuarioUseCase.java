@@ -57,19 +57,18 @@ public class UsuarioUseCase {
         return usuarioCredencialRepository.save(credential);
     }
 
-    public Mono<Void> validarExistenciaUsuario(String documentoIdentidad, String email) {
-        loggingGateway.info("UsuarioUseCase", "Validando datos de usuario: documento=" + documentoIdentidad + ", email=" + email);
+    public Mono<Usuario> consultarUsuario(String email) {
+        loggingGateway.info("UsuarioUseCase", "Consultando datos de usuario por email: " + email);
 
-        return usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email)
-                .switchIfEmpty(Mono.error(new UsuarioNotFoundException("Usuario no encontrado con documento: " + documentoIdentidad + " y email: " + email)))
-                .then()
-                .doOnSuccess(result ->
-                        loggingGateway.info("UsuarioUseCase", "Datos de usuario validados exitosamente"))
+        return usuarioRepository.findByEmail(email)
+                .switchIfEmpty(Mono.error(new UsuarioNotFoundException("Usuario no encontrado con email: " + email)))
+                .doOnSuccess(usuario ->
+                        loggingGateway.info("UsuarioUseCase", "Usuario consultado exitosamente: " + usuario.getEmail()))
                 .doOnError(error -> {
                     if (error instanceof UsuarioNotFoundException) {
-                        loggingGateway.info("UsuarioUseCase", "Usuario no encontrado durante validación: " + error.getMessage());
+                        loggingGateway.info("UsuarioUseCase", "Usuario no encontrado durante consulta: " + error.getMessage());
                     } else {
-                        loggingGateway.error("UsuarioUseCase", "Error validando existencia de usuario: " + error.getMessage(), error);
+                        loggingGateway.error("UsuarioUseCase", "Error consultando usuario: " + error.getMessage(), error);
                     }
                 });
     }

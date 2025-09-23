@@ -111,7 +111,7 @@ class JwtAuthenticationManagerTest {
         StepVerifier.create(authenticationManager.authenticate(inputAuth))
                 .expectErrorMatches(throwable ->
                         throwable instanceof RuntimeException &&
-                                throwable.getMessage().equals("bad token")
+                                throwable.getMessage().equals("Token inválido")
                 )
                 .verify();
 
@@ -212,7 +212,7 @@ class JwtAuthenticationManagerTest {
         StepVerifier.create(authenticationManager.authenticate(inputAuth))
                 .expectErrorMatches(throwable ->
                         throwable instanceof RuntimeException &&
-                                throwable.getMessage().equals("bad token")
+                                throwable.getMessage().equals("Token inválido")
                 )
                 .verify();
 

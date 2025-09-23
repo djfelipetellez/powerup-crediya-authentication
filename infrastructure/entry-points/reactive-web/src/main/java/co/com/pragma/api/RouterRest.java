@@ -47,8 +47,8 @@ public class RouterRest {
     @Bean
     public RouterFunction<ServerResponse> validacionRoutes(Handler handler) {
         return route()
-                .POST(usuarioPath.getValidarExistenciaUsuario(), accept(MediaType.APPLICATION_JSON),
-                        handler::validarExistenciaUsuario, OpenApiUtil::validarDatosUsuario)
+                .GET(usuarioPath.getValidarExistenciaUsuario(), accept(MediaType.APPLICATION_JSON),
+                        handler::consultarUsuario, OpenApiUtil::validarDatosUsuario)
                 .build();
     }
 }

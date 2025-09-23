@@ -9,6 +9,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
     implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:$openApiVersion"
     implementation 'org.springframework:spring-tx'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.mockito:mockito-core'

@@ -5,11 +5,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvent;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.*;
 import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.AfterAll;
@@ -58,11 +54,11 @@ class ArchitectureTest {
         useCaseClasses = new ClassFileImporter().importPackages("co.com.pragma.usecase");
     }
 
-     @AfterAll
+    @AfterAll
     static void exportIssues() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            List.of("/Users/felipetellezdj/git/powerup-crediya-authentication/domain/model/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/driven-adapters/r2dbc-mysql/","/Users/felipetellezdj/git/powerup-crediya-authentication/applications/app-service/","/Users/felipetellezdj/git/powerup-crediya-authentication/domain/usecase/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/entry-points/reactive-web/","/Users/felipetellezdj/git/powerup-crediya-authentication/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/driven-adapters/security/","/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/helpers/log-util/").forEach(path -> {
+            List.of("/Users/felipetellezdj/git/powerup-crediya-authentication/domain/model/", "/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/driven-adapters/r2dbc-mysql/", "/Users/felipetellezdj/git/powerup-crediya-authentication/applications/app-service/", "/Users/felipetellezdj/git/powerup-crediya-authentication/domain/usecase/", "/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/entry-points/reactive-web/", "/Users/felipetellezdj/git/powerup-crediya-authentication/", "/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/driven-adapters/security/", "/Users/felipetellezdj/git/powerup-crediya-authentication/infrastructure/helpers/log-util/").forEach(path -> {
                 try {
                     Files.write(Path.of(path, "build/issues.json"), mapper.writeValueAsBytes(issues.getOrDefault(path, new Utils.IssuesReport())));
                 } catch (IOException e) {
@@ -89,7 +85,7 @@ class ArchitectureTest {
 
     @Test
     void domainClassesShouldNotBeNamedWithTechSuffixes() {
-        ArchRule rule = Stream.of("dto","DTO","Dto","request","REQUEST","Request","response","RESPONSE","Response")
+        ArchRule rule = Stream.of("dto", "DTO", "Dto", "request", "REQUEST", "Request", "response", "RESPONSE", "Response")
                 .reduce(classes().should().haveSimpleNameNotEndingWith("Dto"),
                         (cj, tool) -> cj.andShould().haveSimpleNameNotEndingWith(tool),
                         (a, b) -> b)
@@ -101,7 +97,7 @@ class ArchitectureTest {
 
     @Test
     void domainClassesShouldNotBeNamedWithToolNames() {
-        ArchRule rule = Stream.of("rabbit","RABBIT","Rabbit","sqs","SQS","Sqs","sns","SNS","Sns","ibm","IBM","Ibm","dynamo","DYNAMO","Dynamo","aws","AWS","Aws","mysql","MYSQL","Mysql","postgres","POSTGRES","Postgres","redis","REDIS","Redis","mongo","MONGO","Mongo","rsocket","RSOCKET","Rsocket","r2dbc","R2DBC","R2dbc","http","HTTP","Http","kms","KMS","Kms","s3","S3","S3","graphql","GRAPHQL","Graphql","kafka","KAFKA","Kafka")
+        ArchRule rule = Stream.of("rabbit", "RABBIT", "Rabbit", "sqs", "SQS", "Sqs", "sns", "SNS", "Sns", "ibm", "IBM", "Ibm", "dynamo", "DYNAMO", "Dynamo", "aws", "AWS", "Aws", "mysql", "MYSQL", "Mysql", "postgres", "POSTGRES", "Postgres", "redis", "REDIS", "Redis", "mongo", "MONGO", "Mongo", "rsocket", "RSOCKET", "Rsocket", "r2dbc", "R2DBC", "R2dbc", "http", "HTTP", "Http", "kms", "KMS", "Kms", "s3", "S3", "S3", "graphql", "GRAPHQL", "Graphql", "kafka", "KAFKA", "Kafka")
                 .reduce(classes().should().haveSimpleNameNotContaining("rabbit"),
                         (cj, tool) -> cj.andShould().haveSimpleNameNotContaining(tool),
                         (a, b) -> b)
@@ -126,7 +122,7 @@ class ArchitectureTest {
 
     @Test
     void domainClassesShouldNotHaveFieldsNamedWithToolNames() {
-        ArchRule rule = Stream.of("rabbit","RABBIT","Rabbit","sqs","SQS","Sqs","sns","SNS","Sns","ibm","IBM","Ibm","dynamo","DYNAMO","Dynamo","aws","AWS","Aws","mysql","MYSQL","Mysql","postgres","POSTGRES","Postgres","redis","REDIS","Redis","mongo","MONGO","Mongo","rsocket","RSOCKET","Rsocket","r2dbc","R2DBC","R2dbc","http","HTTP","Http","kms","KMS","Kms","s3","S3","S3","graphql","GRAPHQL","Graphql","kafka","KAFKA","Kafka")
+        ArchRule rule = Stream.of("rabbit", "RABBIT", "Rabbit", "sqs", "SQS", "Sqs", "sns", "SNS", "Sns", "ibm", "IBM", "Ibm", "dynamo", "DYNAMO", "Dynamo", "aws", "AWS", "Aws", "mysql", "MYSQL", "Mysql", "postgres", "POSTGRES", "Postgres", "redis", "REDIS", "Redis", "mongo", "MONGO", "Mongo", "rsocket", "RSOCKET", "Rsocket", "r2dbc", "R2DBC", "R2dbc", "http", "HTTP", "Http", "kms", "KMS", "Kms", "s3", "S3", "S3", "graphql", "GRAPHQL", "Graphql", "kafka", "KAFKA", "Kafka")
                 .reduce((MembersShouldConjunction<?>) fields().should().haveNameNotContaining("rabbit"),
                         (cj, tool) -> cj.andShould().haveNameNotContaining(tool),
                         (a, b) -> b)

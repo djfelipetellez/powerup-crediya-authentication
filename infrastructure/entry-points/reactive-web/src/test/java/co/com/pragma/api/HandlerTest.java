@@ -112,17 +112,28 @@ class HandlerTest {
     }
 
     @Test
-    void validarExistenciaUsuario_Success() {
+    void consultarUsuario_Success() {
         // Arrange
-        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+        String email = "test@test.com";
+        Usuario usuario = Usuario.builder()
+                .idUsuario(1)
+                .nombre("Test")
+                .apellido("User")
+                .email(email)
+                .documentoIdentidad("123456789")
+                .telefono("555-1234")
+                .salarioBase(new BigDecimal("50000"))
+                .build();
+        co.com.pragma.api.dto.RoleResponseDto roleResponseDto = new co.com.pragma.api.dto.RoleResponseDto(1, "ADMIN", "Administrator");
+        UsuarioResponseDto responseDto = new UsuarioResponseDto(1, "Test", "User", email, "123456789", "555-1234", new BigDecimal("50000"), roleResponseDto);
 
-        when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
-        when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
-        when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com"))).thenReturn(Mono.empty());
+        when(serverRequest.pathVariable("email")).thenReturn(email);
+        when(usuarioUseCase.consultarUsuario(email)).thenReturn(Mono.just(usuario));
+        when(usuarioMapper.toResponseDto(any(Usuario.class))).thenReturn(responseDto);
         doNothing().when(logGateway).info(any(), any());
 
         // Act
-        Mono<ServerResponse> result = handler.validarExistenciaUsuario(serverRequest);
+        Mono<ServerResponse> result = handler.consultarUsuario(serverRequest);
 
         // Assert
         StepVerifier.create(result)
@@ -131,30 +142,30 @@ class HandlerTest {
     }
 
     @Test
-    void validarExistenciaUsuario_UserNotFound() {
+    void consultarUsuario_UserNotFound() {
         // Arrange
-        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+        String email = "test@test.com";
 
-        when(serverRequest.bodyToMono(ClienteValidationRequest.class)).thenReturn(Mono.just(requestDto));
-        when(requestValidator.validate(any(ClienteValidationRequest.class))).thenReturn(Mono.just(requestDto));
-        when(usuarioUseCase.validarExistenciaUsuario(("123456789"), ("test@test.com")))
+        when(serverRequest.pathVariable("email")).thenReturn(email);
+        when(usuarioUseCase.consultarUsuario(email))
                 .thenReturn(Mono.error(new UsuarioNotFoundException("Usuario no encontrado")));
+        doNothing().when(logGateway).info(any(), any());
         doNothing().when(logGateway).error(any(), any(), any());
 
         // Act
-        Mono<ServerResponse> result = handler.validarExistenciaUsuario(serverRequest);
+        Mono<ServerResponse> result = handler.consultarUsuario(serverRequest);
 
         // Assert
         StepVerifier.create(result)
                 .expectError(UsuarioNotFoundException.class)
                 .verify();
     }
-/*
+
     @Test
     void login_Success() {
         // Arrange
         LoginRequestDto loginDto = new LoginRequestDto("test@example.com", "password123");
-        TokenAuthentication tokenAuth = new TokenAuthentication("jwt.token.here");
+        TokenAutenticacion tokenAuth = new TokenAutenticacion("jwt.token.here");
 
         when(serverRequest.bodyToMono(LoginRequestDto.class)).thenReturn(Mono.just(loginDto));
         when(requestValidator.validate(any(LoginRequestDto.class))).thenReturn(Mono.just(loginDto));
@@ -168,7 +179,7 @@ class HandlerTest {
         StepVerifier.create(result)
                 .expectNextMatches(serverResponse -> serverResponse.statusCode().equals(HttpStatus.OK))
                 .verifyComplete();
-    } */
+    }
 
     @Test
     void validateToken_ValidToken() {

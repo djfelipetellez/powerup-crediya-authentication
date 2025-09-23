@@ -3,7 +3,6 @@ package co.com.pragma.usecase.auth;
 import co.com.pragma.model.auth.LoginCredenciales;
 import co.com.pragma.model.auth.TokenAutenticacion;
 import co.com.pragma.model.auth.TokenValidationResult;
-import co.com.pragma.model.auth.exceptions.AuthenticationException;
 import co.com.pragma.model.auth.gateways.AuthenticationGateway;
 import co.com.pragma.model.common.gateways.LogGateway;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +80,6 @@ class LoginAuthenticationUseCaseTest {
         verify(logGateway).info("LoginAuthenticationUseCase", "Iniciando validación de token");
         verify(logGateway).info("LoginAuthenticationUseCase", "Token inválido: Token expired");
     }
-
 
 
     @Test
