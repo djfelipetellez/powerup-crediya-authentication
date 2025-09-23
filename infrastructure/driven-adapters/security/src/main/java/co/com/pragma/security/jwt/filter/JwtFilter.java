@@ -1,6 +1,5 @@
 package co.com.pragma.security.jwt.filter;
 
-import co.com.pragma.model.auth.exceptions.AuthenticationException;
 import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
 import org.springframework.http.HttpHeaders;
@@ -32,14 +31,10 @@ public class JwtFilter implements WebFilter {
         }
 
         String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (auth == null) {
-            logGateway.warn("jwt-filter", "Token no encontrado para ruta: " + path, null);
-            return Mono.error(new AuthenticationException(Constantes.MSG_TOKEN_NOT_FOUND));
-        }
-
-        if (!auth.startsWith("Bearer ")) {
-            logGateway.warn("jwt-filter", "Formato inválido para ruta: " + path, null);
-            return Mono.error(new AuthenticationException(Constantes.MSG_INVALID_TOKEN_FORMAT));
+        if (auth == null || !auth.startsWith("Bearer ")) {
+            logGateway.warn("jwt-filter", "Token no encontrado o formato inválido para ruta: " + path, null);
+            // No lanzar excepción aquí - dejar que Spring Security maneje la falta de autenticación
+            return chain.filter(exchange);
         }
 
         String token = auth.replace("Bearer ", "");
@@ -51,6 +46,7 @@ public class JwtFilter implements WebFilter {
     private boolean isPublicPath(String path) {
         return path.contains("login") ||
                 path.contains("validate-token") ||
+                path.contains("validar-existencia") ||
                 path.contains("/swagger-ui") ||
                 path.contains("/v3/api-docs") ||
                 path.contains("/webjars") ||

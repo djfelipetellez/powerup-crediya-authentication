@@ -211,45 +211,51 @@ class UsuarioUseCaseTest {
     }
 
     @Test
-    void validarExistenciaUsuario_Success() {
+    void consultarUsuario_Success() {
         // Arrange
-        String documentoIdentidad = "123456789";
         String email = "test@test.com";
         Usuario usuarioMock = Usuario.builder()
-                .documentoIdentidad(documentoIdentidad)
+                .idUsuario(1)
+                .nombre("Test")
+                .apellido("User")
                 .email(email)
+                .documentoIdentidad("123456789")
+                .telefono("555-1234")
                 .build();
 
         doNothing().when(loggingGateway).info(any(), any());
-        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        when(usuarioRepository.findByEmail(email))
                 .thenReturn(Mono.just(usuarioMock));
 
         // Act
-        Mono<Void> result = usuarioUseCase.validarExistenciaUsuario(documentoIdentidad, email);
+        Mono<Usuario> result = usuarioUseCase.consultarUsuario(email);
 
         // Assert
         StepVerifier.create(result)
+                .expectNextMatches(user ->
+                        user.getEmail().equals(email) &&
+                                user.getNombre().equals("Test") &&
+                                user.getApellido().equals("User"))
                 .verifyComplete();
     }
 
     @Test
-    void validarExistenciaUsuario_UserNotFound() {
+    void consultarUsuario_UserNotFound() {
         // Arrange
-        String documentoIdentidad = "123456789";
         String email = "test@test.com";
 
         doNothing().when(loggingGateway).info(any(), any());
-        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        when(usuarioRepository.findByEmail(email))
                 .thenReturn(Mono.empty());
 
         // Act
-        Mono<Void> result = usuarioUseCase.validarExistenciaUsuario(documentoIdentidad, email);
+        Mono<Usuario> result = usuarioUseCase.consultarUsuario(email);
 
         // Assert
         StepVerifier.create(result)
                 .expectErrorMatches(error ->
                         error instanceof UsuarioNotFoundException &&
-                                error.getMessage().contains("Usuario no encontrado con documento: " + documentoIdentidad + " y email: " + email)
+                                error.getMessage().contains("Usuario no encontrado con email: " + email)
                 )
                 .verify();
     }

@@ -20,7 +20,6 @@ public class RolReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     public RolReactiveRepositoryAdapter(RolReactiveRepository repository, ObjectMapper mapper, LogGateway logGateway) {
         super(repository, mapper, d -> mapper.map(d, Rol.class));
-        this.mapper = mapper;
         this.logGateway = logGateway;
     }
 

@@ -2,6 +2,7 @@ package co.com.pragma.security.jwt.manager;
 
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.security.jwt.provider.JwtProvider;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,8 +33,13 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
                 .doOnNext(claims -> logGateway.info("jwt-auth-manager",
                         "Token autenticado para usuario: " + claims.getSubject()))
                 .onErrorResume(e -> {
-                    logGateway.error("jwt-auth-manager", "Token inválido: " + e.getMessage(), e);
-                    return Mono.error(new RuntimeException("bad token"));
+                    if (e instanceof ExpiredJwtException) {
+                        logGateway.error("jwt-auth-manager", "Token expirado: " + e.getMessage(), e);
+                        return Mono.error(new org.springframework.security.authentication.BadCredentialsException("Token expirado", e));
+                    } else {
+                        logGateway.error("jwt-auth-manager", "Token inválido: " + e.getMessage(), e);
+                        return Mono.error(new org.springframework.security.authentication.BadCredentialsException("Token inválido", e));
+                    }
                 })
                 .map(claims -> new UsernamePasswordAuthenticationToken(
                         claims.getSubject(),

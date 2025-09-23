@@ -67,7 +67,7 @@ class RouterRestTest {
 
         UsuarioPath usuarioPath = new UsuarioPath();
         usuarioPath.setBase("/api/v1/usuarios");
-        usuarioPath.setValidarExistenciaUsuario("/api/v1/usuarios/validar-existencia");
+        usuarioPath.setValidarExistenciaUsuario("/api/v1/usuarios/validar-existencia/{email}");
 
         RolPath rolPath = new RolPath();
         rolPath.setRoles("/api/v1/roles");
@@ -136,39 +136,48 @@ class RouterRestTest {
     }
 
     @Test
-    void validarExistenciaUsuarioTest() {
+    void consultarUsuarioTest() {
         // Arrange
-        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+        String email = "test@test.com";
+        Usuario usuario = Usuario.builder()
+                .idUsuario(1)
+                .nombre("Test")
+                .apellido("User")
+                .email(email)
+                .documentoIdentidad("123456789")
+                .telefono("555-1234")
+                .salarioBase(new BigDecimal("50000"))
+                .build();
+        UsuarioResponseDto responseDto = new UsuarioResponseDto(1, "Test", "User", email, "123456789", "555-1234", new BigDecimal("50000"), new RoleResponseDto(1, "ADMIN", "Administrator"));
 
-        given(requestValidator.validate(any(ClienteValidationRequest.class)))
-                .willReturn(Mono.just(requestDto));
-        given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
-                .willReturn(Mono.empty());
+        given(usuarioUseCase.consultarUsuario(email))
+                .willReturn(Mono.just(usuario));
+        given(usuarioMapper.toResponseDto(any(Usuario.class)))
+                .willReturn(responseDto);
 
         // Act & Assert
-        webTestClient.post()
-                .uri("/api/v1/usuarios/validar-existencia")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(requestDto))
+        webTestClient.get()
+                .uri("/api/v1/usuarios/validar-existencia/{email}", email)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
-                .expectStatus().isOk();
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody(UsuarioResponseDto.class)
+                .isEqualTo(responseDto);
     }
 
     @Test
-    void validarExistenciaUsuarioTest_UserNotFound() {
+    void consultarUsuarioTest_UserNotFound() {
         // Arrange
-        ClienteValidationRequest requestDto = new ClienteValidationRequest("123456789", "test@test.com");
+        String email = "test@test.com";
 
-        given(requestValidator.validate(any(ClienteValidationRequest.class)))
-                .willReturn(Mono.just(requestDto));
-        given(usuarioUseCase.validarExistenciaUsuario("123456789", "test@test.com"))
+        given(usuarioUseCase.consultarUsuario(email))
                 .willReturn(Mono.error(new UsuarioNotFoundException("Usuario no encontrado")));
 
         // Act & Assert
-        webTestClient.post()
-                .uri("/api/v1/usuarios/validar-existencia")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(requestDto))
+        webTestClient.get()
+                .uri("/api/v1/usuarios/validar-existencia/{email}", email)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().is5xxServerError();
     }

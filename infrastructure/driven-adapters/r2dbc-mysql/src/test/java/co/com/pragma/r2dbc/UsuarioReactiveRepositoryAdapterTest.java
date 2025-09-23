@@ -2,8 +2,8 @@ package co.com.pragma.r2dbc;
 
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
+import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.Usuario;
-import co.com.pragma.r2dbc.entity.RolEntity;
 import co.com.pragma.r2dbc.entity.UsuarioEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class UsuarioReactiveRepositoryAdapterTest {
     private UsuarioReactiveRepository usuarioRepository;
 
     @Mock
-    private RolReactiveRepository rolRepository;
+    private RolRepository rolRepository;
 
     @Mock
     private ObjectMapper mapper;
@@ -39,11 +39,9 @@ class UsuarioReactiveRepositoryAdapterTest {
     private Usuario usuario;
     private UsuarioEntity usuarioEntity;
     private Rol rol;
-    private RolEntity rolEntity;
 
     @BeforeEach
     void setUp() {
-        // Crear instancia manual del adapter con las dependencias mockeadas
         adapter = new UsuarioReactiveRepositoryAdapter(usuarioRepository, rolRepository, mapper, logGateway);
 
         rol = Rol.builder()
@@ -73,8 +71,6 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .salarioBase(new BigDecimal(5000000))
                 .idRol(1)
                 .build();
-
-        rolEntity = new RolEntity(1, "ADMIN", "Administrator");
     }
 
     // ========== PRUEBAS PARA SAVE ==========
@@ -82,20 +78,21 @@ class UsuarioReactiveRepositoryAdapterTest {
     @Test
     void save_shouldReturnSavedUsuario_whenSuccessful() {
         // Arrange
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(usuarioEntity);
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(usuarioEntity));
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(usuario))
-                .expectNextMatches(saved ->
-                        saved.getIdUsuario().equals(usuario.getIdUsuario()) &&
-                                saved.getNombre().equals(usuario.getNombre()) &&
-                                saved.getApellido().equals(usuario.getApellido()) &&
-                                saved.getEmail().equals(usuario.getEmail()) &&
-                                saved.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad()) &&
-                                saved.getTelefono().equals(usuario.getTelefono()) &&
-                                saved.getSalarioBase().equals(usuario.getSalarioBase()) &&
-                                saved.getRol().getIdRol().equals(usuario.getRol().getIdRol())
-                )
+        // Act
+        Mono<Usuario> result = adapter.save(usuario);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(saved -> saved.getIdUsuario().equals(usuario.getIdUsuario()) &&
+                        saved.getNombre().equals(usuario.getNombre()) &&
+                        saved.getApellido().equals(usuario.getApellido()) &&
+                        saved.getEmail().equals(usuario.getEmail()) &&
+                        saved.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad()) &&
+                        saved.getTelefono().equals(usuario.getTelefono()) &&
+                        saved.getSalarioBase().equals(usuario.getSalarioBase()))
                 .verifyComplete();
 
         verify(usuarioRepository, times(1)).save(any(UsuarioEntity.class));
@@ -126,15 +123,16 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(1)
                 .build();
 
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(savedEntity);
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(nuevoUsuario))
-                .expectNextMatches(saved ->
-                        saved.getIdUsuario().equals(5) &&
-                                saved.getEmail().equals(nuevoUsuario.getEmail()) &&
-                                saved.getRol() != null
-                )
+        // Act
+        Mono<Usuario> result = adapter.save(nuevoUsuario);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(saved -> saved.getIdUsuario().equals(5) &&
+                        saved.getEmail().equals(nuevoUsuario.getEmail()))
                 .verifyComplete();
 
         verify(usuarioRepository).save(any(UsuarioEntity.class));
@@ -154,12 +152,13 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .rol(null) // Sin rol
                 .build();
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(usuarioSinRol))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof IllegalArgumentException &&
-                                throwable.getMessage().contains("El usuario debe tener un rol asignado")
-                )
+        // Act
+        Mono<Usuario> result = adapter.save(usuarioSinRol);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().contains("El usuario debe tener un rol asignado"))
                 .verify();
 
         verify(usuarioRepository, never()).save(any(UsuarioEntity.class));
@@ -185,12 +184,13 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .rol(rolSinId)
                 .build();
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(usuarioConRolSinId))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof IllegalArgumentException &&
-                                throwable.getMessage().contains("El usuario debe tener un rol asignado")
-                )
+        // Act
+        Mono<Usuario> result = adapter.save(usuarioConRolSinId);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().contains("El usuario debe tener un rol asignado"))
                 .verify();
 
         verify(usuarioRepository, never()).save(any(UsuarioEntity.class));
@@ -199,11 +199,15 @@ class UsuarioReactiveRepositoryAdapterTest {
     @Test
     void save_shouldHandleRepositoryError() {
         // Arrange
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(usuarioEntity);
         when(usuarioRepository.save(any(UsuarioEntity.class)))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(usuario))
+        // Act
+        Mono<Usuario> result = adapter.save(usuario);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectError(RuntimeException.class)
                 .verify();
 
@@ -217,22 +221,23 @@ class UsuarioReactiveRepositoryAdapterTest {
         // Arrange
         when(usuarioRepository.findByEmail("juan.perez@example.com"))
                 .thenReturn(Mono.just(usuarioEntity));
-        when(rolRepository.findById(1)).thenReturn(Mono.just(rolEntity));
+        when(rolRepository.findById(1)).thenReturn(Mono.just(rol));
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail("juan.perez@example.com"))
-                .expectNextMatches(found ->
-                        found.getIdUsuario().equals(usuario.getIdUsuario()) &&
-                                found.getNombre().equals(usuario.getNombre()) &&
-                                found.getApellido().equals(usuario.getApellido()) &&
-                                found.getEmail().equals(usuario.getEmail()) &&
-                                found.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad()) &&
-                                found.getTelefono().equals(usuario.getTelefono()) &&
-                                found.getSalarioBase().equals(usuario.getSalarioBase()) &&
-                                found.getRol().getIdRol().equals(1) &&
-                                found.getRol().getNombre().equals("ADMIN") &&
-                                found.getRol().getDescripcion().equals("Administrator")
-                )
+        // Act
+        Mono<Usuario> result = adapter.findByEmail("juan.perez@example.com");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(found -> found.getIdUsuario().equals(usuario.getIdUsuario()) &&
+                        found.getNombre().equals(usuario.getNombre()) &&
+                        found.getApellido().equals(usuario.getApellido()) &&
+                        found.getEmail().equals(usuario.getEmail()) &&
+                        found.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad()) &&
+                        found.getTelefono().equals(usuario.getTelefono()) &&
+                        found.getSalarioBase().equals(usuario.getSalarioBase()) &&
+                        found.getRol().getIdRol().equals(1) &&
+                        found.getRol().getNombre().equals("ADMIN") &&
+                        found.getRol().getDescripcion().equals("Administrator"))
                 .verifyComplete();
 
         verify(usuarioRepository).findByEmail("juan.perez@example.com");
@@ -245,8 +250,11 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(usuarioRepository.findByEmail(anyString()))
                 .thenReturn(Mono.empty());
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail("nonexistent@example.com"))
+        // Act
+        Mono<Usuario> result = adapter.findByEmail("nonexistent@example.com");
+
+        // Assert
+        StepVerifier.create(result)
                 .verifyComplete();
 
         verify(usuarioRepository).findByEmail("nonexistent@example.com");
@@ -270,12 +278,13 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(usuarioRepository.findByEmail(anyString()))
                 .thenReturn(Mono.just(usuarioSinRol));
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail("juan.perez@example.com"))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof IllegalStateException &&
-                                throwable.getMessage().equals("Usuario encontrado sin rol asignado")
-                )
+        // Act
+        Mono<Usuario> result = adapter.findByEmail("juan.perez@example.com");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalStateException &&
+                        throwable.getMessage().equals("Usuario encontrado sin rol asignado"))
                 .verify();
 
         verify(usuarioRepository).findByEmail("juan.perez@example.com");
@@ -283,15 +292,20 @@ class UsuarioReactiveRepositoryAdapterTest {
     }
 
     @Test
-    void findByEmail_shouldHandleRolNotFound() {
+    void findByEmail_shouldThrowException_whenRolNotFound() {
         // Arrange
         when(usuarioRepository.findByEmail(anyString()))
                 .thenReturn(Mono.just(usuarioEntity));
         when(rolRepository.findById(anyInt())).thenReturn(Mono.empty());
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail("juan.perez@example.com"))
-                .verifyComplete();
+        // Act
+        Mono<Usuario> result = adapter.findByEmail("juan.perez@example.com");
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalStateException &&
+                        throwable.getMessage().equals("Usuario encontrado sin rol asignado"))
+                .verify();
 
         verify(usuarioRepository).findByEmail("juan.perez@example.com");
         verify(rolRepository).findById(1);
@@ -299,8 +313,12 @@ class UsuarioReactiveRepositoryAdapterTest {
 
     @Test
     void findByEmail_shouldReturnEmpty_whenEmailIsNull() {
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail(null))
+
+        // Act
+        Mono<Usuario> result = adapter.findByEmail(null);
+
+        // Assert
+        StepVerifier.create(result)
                 .verifyComplete();
 
         verify(usuarioRepository, never()).findByEmail(anyString());
@@ -312,8 +330,11 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(usuarioRepository.findByEmail(anyString()))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByEmail("juan.perez@example.com"))
+        // Act
+        Mono<Usuario> result = adapter.findByEmail("juan.perez@example.com");
+
+        // Assert
+        StepVerifier.create(result)
                 .expectError(RuntimeException.class)
                 .verify();
 
@@ -326,7 +347,7 @@ class UsuarioReactiveRepositoryAdapterTest {
     void registrarUsuarioCompleto_shouldRegisterUser_whenRoleExists() {
         // Arrange
         Integer roleId = 2;
-        RolEntity rolEntity = RolEntity.builder()
+        Rol userRol = Rol.builder()
                 .idRol(roleId)
                 .nombre("USER")
                 .descripcion("User role")
@@ -343,17 +364,16 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(roleId) // roleId assigned
                 .build();
 
-        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(savedEntity);
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(userRol));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
 
-        // Act & Assert
-        StepVerifier.create(adapter.registrarUsuarioCompleto(usuario, roleId))
-                .expectNextMatches(registered ->
-                        registered.getEmail().equals(usuario.getEmail()) &&
-                                registered.getRol().getIdRol().equals(2) &&
-                                registered.getRol().getNombre().equals("USER") &&
-                                registered.getRol().getDescripcion().equals("User role")
-                )
+        // Act
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(registered -> registered.getEmail().equals(usuario.getEmail()))
                 .verifyComplete();
 
         verify(rolRepository).findById(roleId);
@@ -366,12 +386,13 @@ class UsuarioReactiveRepositoryAdapterTest {
         Integer roleId = 999;
         when(rolRepository.findById(roleId)).thenReturn(Mono.empty());
 
-        // Act & Assert
-        StepVerifier.create(adapter.registrarUsuarioCompleto(usuario, roleId))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof IllegalArgumentException &&
-                                throwable.getMessage().equals("Rol no encontrado con ID: " + roleId)
-                )
+        // Act
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                        throwable.getMessage().equals("Rol no encontrado con ID: " + roleId))
                 .verify();
 
         verify(rolRepository).findById(roleId);
@@ -382,18 +403,22 @@ class UsuarioReactiveRepositoryAdapterTest {
     void registrarUsuarioCompleto_shouldHandleRepositoryError() {
         // Arrange
         Integer roleId = 2;
-        RolEntity rolEntity = RolEntity.builder()
+        Rol userRolError = Rol.builder()
                 .idRol(roleId)
                 .nombre("USER")
                 .descripcion("User role")
                 .build();
 
-        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(usuarioEntity);
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(userRolError));
         when(usuarioRepository.save(any(UsuarioEntity.class)))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
-        // Act & Assert
-        StepVerifier.create(adapter.registrarUsuarioCompleto(usuario, roleId))
+        // Act
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+
+        // Assert
+        StepVerifier.create(result)
                 .expectError(RuntimeException.class)
                 .verify();
 
@@ -416,7 +441,7 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .rol(null) // Sin rol inicial
                 .build();
 
-        RolEntity rolEntity = RolEntity.builder()
+        Rol userRolAssign = Rol.builder()
                 .idRol(roleId)
                 .nombre("USER")
                 .descripcion("User role")
@@ -433,17 +458,16 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(roleId) // roleId assigned
                 .build();
 
-        when(rolRepository.findById(roleId)).thenReturn(Mono.just(rolEntity));
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(savedEntity);
+        when(rolRepository.findById(roleId)).thenReturn(Mono.just(userRolAssign));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
 
-        // Act & Assert
-        StepVerifier.create(adapter.registrarUsuarioCompleto(usuarioSinRolInicial, roleId))
-                .expectNextMatches(registered ->
-                        registered.getEmail().equals(usuarioSinRolInicial.getEmail()) &&
-                                registered.getRol().getIdRol().equals(2) &&
-                                registered.getRol().getNombre().equals("USER") &&
-                                registered.getRol().getDescripcion().equals("User role")
-                )
+        // Act
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuarioSinRolInicial, roleId);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(registered -> registered.getEmail().equals(usuarioSinRolInicial.getEmail()))
                 .verifyComplete();
 
         verify(rolRepository).findById(roleId);
@@ -478,101 +502,134 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .idRol(1)
                 .build();
 
+        when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(entityEspecial);
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(entityEspecial));
 
-        // Act & Assert
-        StepVerifier.create(adapter.save(usuarioEspecial))
-                .expectNextMatches(saved ->
-                        saved.getNombre().equals("José María") &&
-                                saved.getApellido().equals("González-Rodríguez") &&
-                                saved.getEmail().equals("jose.maria@compañía.com")
-                )
+        // Act
+        Mono<Usuario> result = adapter.save(usuarioEspecial);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(saved -> saved.getNombre().equals("José María") &&
+                        saved.getApellido().equals("González-Rodríguez") &&
+                        saved.getEmail().equals("jose.maria@compañía.com"))
                 .verifyComplete();
 
         verify(usuarioRepository).save(any(UsuarioEntity.class));
     }
 
-    // ========== PRUEBAS PARA FINDBYDOCUMENTOIDENTIDADANDEMAIL ==========
+    // ========== PRUEBAS PARA FINDBYID ==========
 
     @Test
-    void findByDocumentoIdentidadAndEmail_shouldReturnUsuario_whenFound() {
+    void findById_shouldReturnUsuario_whenFoundWithRol() {
         // Arrange
-        String documentoIdentidad = "12345678";
-        String email = "juan.perez@example.com";
-
-        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        when(usuarioRepository.findById(1))
                 .thenReturn(Mono.just(usuarioEntity));
-        when(rolRepository.findById(1)).thenReturn(Mono.just(rolEntity));
+        when(rolRepository.findById(1)).thenReturn(Mono.just(rol));
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
-                .expectNextMatches(found ->
-                        found.getDocumentoIdentidad().equals(documentoIdentidad) &&
-                                found.getEmail().equals(email) &&
-                                found.getRol().getIdRol().equals(1)
-                )
+        // Act
+        Mono<Usuario> result = adapter.findById(1);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNextMatches(found -> found.getIdUsuario().equals(usuario.getIdUsuario()) &&
+                        found.getNombre().equals(usuario.getNombre()) &&
+                        found.getApellido().equals(usuario.getApellido()) &&
+                        found.getEmail().equals(usuario.getEmail()) &&
+                        found.getDocumentoIdentidad().equals(usuario.getDocumentoIdentidad()) &&
+                        found.getTelefono().equals(usuario.getTelefono()) &&
+                        found.getSalarioBase().equals(usuario.getSalarioBase()) &&
+                        found.getRol().getIdRol().equals(1) &&
+                        found.getRol().getNombre().equals("ADMIN") &&
+                        found.getRol().getDescripcion().equals("Administrator"))
                 .verifyComplete();
 
-        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(usuarioRepository).findById(1);
         verify(rolRepository).findById(1);
     }
 
     @Test
-    void findByDocumentoIdentidadAndEmail_shouldReturnEmpty_whenUserNotFound() {
+    void findById_shouldReturnEmpty_whenUserNotFound() {
         // Arrange
-        String documentoIdentidad = "nonexistent";
-        String email = "nonexistent@example.com";
-
-        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        when(usuarioRepository.findById(anyInt()))
                 .thenReturn(Mono.empty());
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        // Act
+        Mono<Usuario> result = adapter.findById(999);
+
+        // Assert
+        StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(usuarioRepository).findById(999);
         verify(rolRepository, never()).findById(anyInt());
     }
 
     @Test
-    void findByDocumentoIdentidadAndEmail_shouldReturnEmpty_whenParametersAreNull() {
-        // Act & Assert
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(null, "test@example.com"))
-                .verifyComplete();
-
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail("123456789", null))
-                .verifyComplete();
-
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(null, null))
-                .verifyComplete();
-
-        verify(usuarioRepository, never()).findByDocumentoIdentidadAndEmail(anyString(), anyString());
-    }
-
-    @Test
-    void findByDocumentoIdentidadAndEmail_shouldThrowException_whenUserHasNoRol() {
+    void findById_shouldThrowException_whenUserHasNoRol() {
         // Arrange
-        String documentoIdentidad = "12345678";
-        String email = "juan.perez@example.com";
         UsuarioEntity usuarioSinRol = UsuarioEntity.builder()
                 .idUsuario(1)
-                .documentoIdentidad(documentoIdentidad)
-                .email(email)
-                .idRol(null)
+                .nombre("Juan")
+                .apellido("Pérez")
+                .email("juan.perez@example.com")
+                .documentoIdentidad("12345678")
+                .telefono("3001234567")
+                .salarioBase(new BigDecimal(5000000))
+                .idRol(null) // Sin rol
                 .build();
 
-        when(usuarioRepository.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
+        when(usuarioRepository.findById(anyInt()))
                 .thenReturn(Mono.just(usuarioSinRol));
 
-        // Act & Assert
-        StepVerifier.create(adapter.findByDocumentoIdentidadAndEmail(documentoIdentidad, email))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof IllegalStateException &&
-                                throwable.getMessage().equals("Usuario encontrado sin rol asignado")
-                )
+        // Act
+        Mono<Usuario> result = adapter.findById(1);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalStateException &&
+                        throwable.getMessage().equals("Usuario encontrado sin rol asignado"))
                 .verify();
 
-        verify(usuarioRepository).findByDocumentoIdentidadAndEmail(documentoIdentidad, email);
+        verify(usuarioRepository).findById(1);
         verify(rolRepository, never()).findById(anyInt());
     }
+
+    @Test
+    void findById_shouldThrowException_whenRolNotFound() {
+        // Arrange
+        when(usuarioRepository.findById(anyInt()))
+                .thenReturn(Mono.just(usuarioEntity));
+        when(rolRepository.findById(anyInt())).thenReturn(Mono.empty());
+
+        // Act
+        Mono<Usuario> result = adapter.findById(1);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof IllegalStateException &&
+                        throwable.getMessage().equals("Usuario encontrado sin rol asignado"))
+                .verify();
+
+        verify(usuarioRepository).findById(1);
+        verify(rolRepository).findById(1);
+    }
+
+    @Test
+    void findById_shouldHandleRepositoryError() {
+        // Arrange
+        when(usuarioRepository.findById(anyInt()))
+                .thenReturn(Mono.error(new RuntimeException("Database error")));
+
+        // Act
+        Mono<Usuario> result = adapter.findById(1);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(usuarioRepository).findById(1);
+    }
+
 }

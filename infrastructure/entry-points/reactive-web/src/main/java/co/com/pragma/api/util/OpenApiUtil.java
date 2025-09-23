@@ -92,15 +92,20 @@ public class OpenApiUtil {
 
     public Builder validarDatosUsuario(Builder builder) {
         return builder
-                .operationId("validarDatosUsuario")
-                .description(DESC_VALIDAR_DATOS_USUARIO)
+                .operationId("consultarUsuario")
+                .description("Consulta los datos completos de un usuario por documento y email")
                 .tag(TAG_USUARIOS)
                 .requestBody(requestBodyBuilder()
                         .required(true)
                         .content(contentBuilder().mediaType(MEDIA_TYPE_JSON)
                                 .schema(schemaBuilder().implementation(ClienteValidationRequest.class))))
-                .response(responseBuilder().responseCode("200").description(MSG_DATOS_VALIDADOS))
+                .response(responseBuilder().responseCode("200").description("Usuario encontrado")
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_JSON)
+                                .schema(schemaBuilder().implementation(UsuarioResponseDto.class))))
                 .response(responseBuilder().responseCode("400").description(MSG_400)
+                        .content(contentBuilder().mediaType(MEDIA_TYPE_PROBLEM_JSON)
+                                .schema(schemaBuilder().implementation(ProblemDetail.class))))
+                .response(responseBuilder().responseCode("404").description("Usuario no encontrado")
                         .content(contentBuilder().mediaType(MEDIA_TYPE_PROBLEM_JSON)
                                 .schema(schemaBuilder().implementation(ProblemDetail.class))))
                 .response(responseBuilder().responseCode("500").description(MSG_500)

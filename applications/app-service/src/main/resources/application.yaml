@@ -46,7 +46,7 @@ api:
   paths:
     usuarios:
       base: "/api/v1/usuarios"
-      validar-existencia-usuario: "/api/v1/usuarios/validar-existencia"
+      validar-existencia-usuario: "/api/v1/usuarios/validar-existencia/{email}"
     roles: "/api/v1/roles"
     auth:
       login: "/api/v1/auth/login"

@@ -1,6 +1,5 @@
 package co.com.pragma.security.jwt.filter;
 
-import co.com.pragma.model.auth.exceptions.AuthenticationException;
 import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,24 +152,24 @@ class JwtFilterTest {
 
     @Test
     void filter_shouldThrowException_whenNoAuthorizationHeader() {
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/protected")
                 .build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         StepVerifier.create(jwtFilter.filter(exchange, filterChain))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof AuthenticationException &&
-                                throwable.getMessage().equals(Constantes.MSG_TOKEN_NOT_FOUND)
-                )
-                .verify();
+                .verifyComplete();
 
-        verify(filterChain, never()).filter(any());
-        verify(logGateway).warn("jwt-filter", "Token no encontrado para ruta: /api/protected", null);
+        verify(filterChain).filter(exchange);
+        verify(logGateway).warn("jwt-filter", "Token no encontrado o formato inválido para ruta: /api/protected", null);
     }
 
     @Test
     void filter_shouldThrowException_whenInvalidTokenFormat() {
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/protected")
                 .header(HttpHeaders.AUTHORIZATION, "InvalidFormat jwt.token.here")
@@ -178,18 +177,16 @@ class JwtFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         StepVerifier.create(jwtFilter.filter(exchange, filterChain))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof AuthenticationException &&
-                                throwable.getMessage().equals(Constantes.MSG_INVALID_TOKEN_FORMAT)
-                )
-                .verify();
+                .verifyComplete();
 
-        verify(filterChain, never()).filter(any());
-        verify(logGateway).warn("jwt-filter", "Formato inválido para ruta: /api/protected", null);
+        verify(filterChain).filter(exchange);
+        verify(logGateway).warn("jwt-filter", "Token no encontrado o formato inválido para ruta: /api/protected", null);
     }
 
     @Test
     void filter_shouldThrowException_whenEmptyAuthorizationHeader() {
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/protected")
                 .header(HttpHeaders.AUTHORIZATION, "")
@@ -197,14 +194,10 @@ class JwtFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         StepVerifier.create(jwtFilter.filter(exchange, filterChain))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof AuthenticationException &&
-                                throwable.getMessage().equals(Constantes.MSG_INVALID_TOKEN_FORMAT)
-                )
-                .verify();
+                .verifyComplete();
 
-        verify(filterChain, never()).filter(any());
-        verify(logGateway).warn("jwt-filter", "Formato inválido para ruta: /api/protected", null);
+        verify(filterChain).filter(exchange);
+        verify(logGateway).warn("jwt-filter", "Token no encontrado o formato inválido para ruta: /api/protected", null);
     }
 
     @Test
@@ -244,6 +237,8 @@ class JwtFilterTest {
 
     @Test
     void filter_shouldHandleCaseInsensitiveBearer() {
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
         String token = "jwt.token.here";
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/protected")
@@ -252,13 +247,10 @@ class JwtFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         StepVerifier.create(jwtFilter.filter(exchange, filterChain))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof AuthenticationException &&
-                                throwable.getMessage().equals(Constantes.MSG_INVALID_TOKEN_FORMAT)
-                )
-                .verify();
+                .verifyComplete();
 
-        verify(filterChain, never()).filter(any());
+        verify(filterChain).filter(exchange);
+        verify(logGateway).warn("jwt-filter", "Token no encontrado o formato inválido para ruta: /api/protected", null);
     }
 
     @Test
@@ -291,6 +283,8 @@ class JwtFilterTest {
 
     @Test
     void filter_shouldNotAllowPrivatePaths() {
+        when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+
         String[] privatePaths = {
                 "/api/users",
                 "/api/orders",
@@ -303,11 +297,10 @@ class JwtFilterTest {
             ServerWebExchange exchange = MockServerWebExchange.from(request);
 
             StepVerifier.create(jwtFilter.filter(exchange, filterChain))
-                    .expectError(AuthenticationException.class)
-                    .verify();
+                    .verifyComplete();
         }
 
-        verify(filterChain, never()).filter(any());
+        verify(filterChain, times(privatePaths.length)).filter(any());
         verify(logGateway, times(privatePaths.length)).warn(eq("jwt-filter"), anyString(), isNull());
     }
 
