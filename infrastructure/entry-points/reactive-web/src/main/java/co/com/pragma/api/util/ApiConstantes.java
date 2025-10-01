@@ -83,6 +83,8 @@ public final class ApiConstantes {
     public static final String PROBLEM_TYPE_BASE = "https://api.pragma.com/problems/";
     public static final String PROBLEM_TYPE_VALIDATION_FAILED = PROBLEM_TYPE_BASE + "validation-failed";
     public static final String PROBLEM_TYPE_DATA_CONFLICT = PROBLEM_TYPE_BASE + "data-conflict";
+    public static final String PROBLEM_TYPE_DUPLICATE_DOCUMENT = PROBLEM_TYPE_BASE + "duplicate-document";
+    public static final String PROBLEM_TYPE_DUPLICATE_EMAIL = PROBLEM_TYPE_BASE + "duplicate-email";
     public static final String PROBLEM_TYPE_USER_NOT_FOUND = PROBLEM_TYPE_BASE + "user-not-found";
     public static final String PROBLEM_TYPE_BUSINESS_RULE = PROBLEM_TYPE_BASE + "business-rule-violation";
     public static final String PROBLEM_TYPE_INVALID_REQUEST = PROBLEM_TYPE_BASE + "invalid-request";
@@ -91,6 +93,8 @@ public final class ApiConstantes {
     // PROBLEM DETAIL TITLES
     public static final String TITLE_VALIDATION_FAILED = "Validation Failed";
     public static final String TITLE_DATA_CONFLICT = "Data Conflict";
+    public static final String TITLE_DUPLICATE_DOCUMENT = "Documento de Identidad Duplicado";
+    public static final String TITLE_DUPLICATE_EMAIL = "Correo Electrónico Duplicado";
     public static final String TITLE_USER_NOT_FOUND = "Usuario No Encontrado";
     public static final String TITLE_BUSINESS_RULE = "Regla de Negocio Violada";
     public static final String TITLE_INVALID_REQUEST = "Petición Inválida";
@@ -99,9 +103,9 @@ public final class ApiConstantes {
     // PROBLEM DETAIL DESCRIPTIONS
     public static final String DETAIL_VALIDATION_FAILED = "Los datos enviados no cumplen las validaciones requeridas";
     public static final String DETAIL_DATA_CONFLICT = "El recurso ya existe con los datos proporcionados";
+    public static final String DETAIL_DUPLICATE_DOCUMENT = "Ya existe un usuario registrado con este documento de identidad";
+    public static final String DETAIL_DUPLICATE_EMAIL = "Ya existe un usuario registrado con este correo electrónico";
     public static final String DETAIL_USER_NOT_FOUND = "No se encontró un usuario con los criterios especificados";
-    public static final String DETAIL_BUSINESS_RULE = "La operación solicitada viola una regla de negocio";
-    public static final String DETAIL_INVALID_REQUEST = "La petición contiene datos inválidos";
     public static final String DETAIL_SERVER_ERROR = "Ocurrió un error inesperado en el servidor";
 
     // ERROR CODES
@@ -118,14 +122,7 @@ public final class ApiConstantes {
     // PROBLEM DETAIL PROPERTIES
     public static final String PROPERTY_ERROR_CODE = "error_code";
     public static final String PROPERTY_VALIDATION_ERRORS = "validation_errors";
-    public static final String PROPERTY_CONFLICT_FIELD = "conflict_field";
-    public static final String PROPERTY_SUGGESTION = "suggestion";
     public static final String PROPERTY_SEARCH_CRITERIA = "search_criteria";
     public static final String PROPERTY_INSTANCE_ID = "instance_id";
 
-    // SUGGESTIONS
-    public static final String SUGGESTION_CHECK_EMAIL_ID = "Verifique que el email o ID sean correctos";
-    public static final String SUGGESTION_USE_DIFFERENT_EMAIL = "Utilice un email diferente";
-    public static final String SUGGESTION_USE_DIFFERENT_DOCUMENT = "Utilice un documento de identidad diferente";
-    public static final String SUGGESTION_CHECK_CREDENTIALS = "Verifique sus credenciales de acceso";
 }

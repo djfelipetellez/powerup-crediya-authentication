@@ -1,5 +1,6 @@
 package co.com.pragma.api.mapper;
 
+import co.com.pragma.api.dto.RoleResponseDto;
 import co.com.pragma.api.dto.UsuarioRegistroRequestDto;
 import co.com.pragma.api.dto.UsuarioResponseDto;
 import co.com.pragma.model.usuario.Usuario;
@@ -19,5 +20,27 @@ public interface UsuarioMapper {
                 .build();
     }
 
-    UsuarioResponseDto toResponseDto(Usuario user);
+    default UsuarioResponseDto toResponseDto(Usuario user) {
+        if (user == null) return null;
+
+        RoleResponseDto rolDto = null;
+        if (user.getRol() != null) {
+            rolDto = new RoleResponseDto(
+                    user.getRol().getIdRol(),
+                    user.getRol().getNombre(),
+                    user.getRol().getDescripcion()
+            );
+        }
+
+        return new UsuarioResponseDto(
+                user.getIdUsuario(),
+                user.getNombre(),
+                user.getApellido(),
+                user.getEmail(),
+                user.getDocumentoIdentidad(),
+                user.getTelefono(),
+                user.getSalarioBase(),
+                rolDto
+        );
+    }
 }

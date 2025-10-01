@@ -13,4 +13,5 @@ public class AuthPath {
 
     private String login;
     private String validateToken;
+    private String registerInitial;
 }

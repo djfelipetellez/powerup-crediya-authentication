@@ -59,6 +59,26 @@ public class Handler {
                 });
     }
 
+    public Mono<ServerResponse> registrarUsuarioInicial(ServerRequest request) {
+        return request.bodyToMono(UsuarioRegistroRequestDto.class)
+                .flatMap(requestValidator::validate)
+                .flatMap(requestDto -> {
+                    logGateway.info(LOG_REGISTRAR_USUARIO, String.format(MSG_INTENTO_REGISTRO_USUARIO, requestDto.email(), requestDto.documentoIdentidad()));
+
+                    Usuario usuario = usuarioMapper.toDomain(requestDto);
+                    Integer idRol = requestDto.idRol();
+                    String password = requestDto.password();
+
+                    return usuarioUseCase.registrarUsuario(usuario, idRol, password)
+                            .flatMap(saved -> {
+                                logGateway.info(LOG_REGISTRAR_USUARIO, String.format(MSG_USUARIO_REGISTRADO, saved.getIdUsuario(), saved.getEmail()));
+                                return ServerResponse.status(HttpStatus.CREATED)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(usuarioMapper.toResponseDto(saved));
+                            });
+                });
+    }
+
     public Mono<ServerResponse> registrarRol(ServerRequest request) {
         return request.bodyToMono(RolRegistroRequestDto.class)
                 .flatMap(requestValidator::validate)
@@ -160,4 +180,5 @@ public class Handler {
                 })
                 .doOnError(error -> logGateway.error(LOG_HANDLER, String.format(MSG_ERROR_VALIDATE_TOKEN, error.getMessage()), error));
     }
+
 }

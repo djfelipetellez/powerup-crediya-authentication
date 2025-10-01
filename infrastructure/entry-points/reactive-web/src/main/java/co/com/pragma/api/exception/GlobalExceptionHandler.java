@@ -71,20 +71,24 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 logGateway.warn(action, LOG_DATA_INTEGRITY_VIOLATION + ex.getMessage(), ex);
 
                 problemDetail = ProblemDetail.forStatus(httpStatus);
-                problemDetail.setType(URI.create(PROBLEM_TYPE_DATA_CONFLICT));
-                problemDetail.setTitle(TITLE_DATA_CONFLICT);
-                problemDetail.setDetail(DETAIL_DATA_CONFLICT);
-                problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_DOCUMENT);
 
-                // Información específica según el campo en conflicto
+                // Determinar el tipo específico de conflicto según el campo
                 if (ex.getMessage().toLowerCase().contains("documento_identidad")) {
-                    problemDetail.setProperty(PROPERTY_CONFLICT_FIELD, "documento_identidad");
+                    problemDetail.setType(URI.create(PROBLEM_TYPE_DUPLICATE_DOCUMENT));
+                    problemDetail.setTitle(TITLE_DUPLICATE_DOCUMENT);
+                    problemDetail.setDetail(DETAIL_DUPLICATE_DOCUMENT);
                     problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_DOCUMENT);
-                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_USE_DIFFERENT_DOCUMENT);
                 } else if (ex.getMessage().toLowerCase().contains("email")) {
-                    problemDetail.setProperty(PROPERTY_CONFLICT_FIELD, "email");
+                    problemDetail.setType(URI.create(PROBLEM_TYPE_DUPLICATE_EMAIL));
+                    problemDetail.setTitle(TITLE_DUPLICATE_EMAIL);
+                    problemDetail.setDetail(DETAIL_DUPLICATE_EMAIL);
                     problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_EMAIL);
-                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_USE_DIFFERENT_EMAIL);
+                } else {
+                    // Fallback para otros tipos de conflictos de datos
+                    problemDetail.setType(URI.create(PROBLEM_TYPE_DATA_CONFLICT));
+                    problemDetail.setTitle(TITLE_DATA_CONFLICT);
+                    problemDetail.setDetail(DETAIL_DATA_CONFLICT);
+                    problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_DUPLICATE_DOCUMENT);
                 }
                 problemDetail.setProperty(PROPERTY_INSTANCE_ID, request.exchange().getRequest().getId());
             }
@@ -97,7 +101,6 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 problemDetail.setTitle(TITLE_USER_NOT_FOUND);
                 problemDetail.setDetail(DETAIL_USER_NOT_FOUND);
                 problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_USER_NOT_FOUND);
-                problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_CHECK_EMAIL_ID);
 
                 // Información sobre criterios de búsqueda si están disponibles
                 if (ex.getMessage().contains("@")) {
@@ -131,7 +134,6 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                     problemDetail.setTitle("Credenciales Inválidas");
                     problemDetail.setDetail("Las credenciales proporcionadas son incorrectas");
                     problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_AUTHENTICATION_FAILED);
-                    problemDetail.setProperty(PROPERTY_SUGGESTION, SUGGESTION_CHECK_CREDENTIALS);
                 }
             }
             case IllegalArgumentException ex -> {
@@ -153,7 +155,6 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
                 problemDetail.setTitle(TITLE_SERVER_ERROR);
                 problemDetail.setDetail(DETAIL_SERVER_ERROR);
                 problemDetail.setProperty(PROPERTY_ERROR_CODE, ERROR_CODE_SERVER_ERROR);
-                problemDetail.setProperty(PROPERTY_INSTANCE_ID, request.exchange().getRequest().getId());
             }
         }
 

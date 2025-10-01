@@ -10,7 +10,7 @@ public interface UserCredentialReactiveRepository extends ReactiveCrudRepository
 
     Mono<UserCredentialEntity> findByEmail(String email);
 
-    @Query("UPDATE user_credentials SET last_login_at = NOW() WHERE id = :id RETURNING *")
+    @Query("UPDATE auth_schema.user_credentials SET last_login_at = NOW() WHERE id = :id RETURNING *")
     Mono<UserCredentialEntity> updateLastLoginById(Integer id);
 
 }

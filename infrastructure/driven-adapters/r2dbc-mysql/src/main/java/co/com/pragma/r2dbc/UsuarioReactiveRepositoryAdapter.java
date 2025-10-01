@@ -1,5 +1,7 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.model.auth.UsuarioCredencial;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.gateways.RolRepository;
 import co.com.pragma.model.usuario.Usuario;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+
 @Repository
 public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         Usuario,
@@ -20,14 +24,17 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         > implements UsuarioRepository {
 
     private final RolRepository rolRepository;
+    private final UsuarioCredencialRepository usuarioCredencialRepository;
     private final LogGateway logGateway;
 
     public UsuarioReactiveRepositoryAdapter(UsuarioReactiveRepository repository,
                                             RolRepository rolRepository,
+                                            UsuarioCredencialRepository usuarioCredencialRepository,
                                             ObjectMapper mapper,
                                             LogGateway logGateway) {
         super(repository, mapper, UsuarioReactiveRepositoryAdapter::buildUsuario);
         this.rolRepository = rolRepository;
+        this.usuarioCredencialRepository = usuarioCredencialRepository;
         this.logGateway = logGateway;
     }
 
@@ -82,15 +89,35 @@ public class UsuarioReactiveRepositoryAdapter extends ReactiveAdapterOperations<
 
     @Override
     @Transactional
-    public Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId) {
-        logGateway.info("UsuarioRepositoryAdapter", "Registrando usuario completo: " + usuario.getEmail());
+    public Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId, String password) {
+        logGateway.info("UsuarioRepositoryAdapter", "Registrando usuario completo con credenciales: " + usuario.getEmail());
 
         return rolRepository.findById(roleId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Rol no encontrado con ID: " + roleId)))
-                .map(rol -> usuario.toBuilder().rol(rol).build())
-                .flatMap(this::save)
-                .doOnSuccess(saved -> logGateway.info("UsuarioRepositoryAdapter", "Usuario registrado: " + saved.getEmail()));
+                .flatMap(rol -> {
+                    Usuario usuarioConRol = usuario.toBuilder().rol(rol).build();
+                    return this.save(usuarioConRol)
+                            .flatMap(saved -> this.findById(saved.getIdUsuario())); // Usar findById para obtener usuario completo con rol
+                })
+                .flatMap(usuarioRegistrado -> crearCredencialesParaUsuario(usuarioRegistrado, password)
+                        .thenReturn(usuarioRegistrado)
+                )
+                .doOnSuccess(saved -> logGateway.info("UsuarioRepositoryAdapter", "Usuario y credenciales registrados exitosamente: " + saved.getEmail()))
+                .doOnError(error -> logGateway.error("UsuarioRepositoryAdapter", "Error registrando usuario completo: " + error.getMessage(), error));
     }
+
+    private Mono<UsuarioCredencial> crearCredencialesParaUsuario(Usuario usuario, String password) {
+        UsuarioCredencial credential = UsuarioCredencial.builder()
+                .email(usuario.getEmail())
+                .password(password)
+                .idUsuario(usuario.getIdUsuario())
+                .createdAt(LocalDateTime.now())
+                .active(true)
+                .build();
+
+        return usuarioCredencialRepository.save(credential);
+    }
+
 
     private Mono<Void> validateUsuarioMono(Usuario usuario) {
         if (usuario.getRol() == null || usuario.getRol().getIdRol() == null) {

@@ -26,9 +26,6 @@ class RolReactiveRepositoryAdapterTest {
     @Mock
     private ObjectMapper mapper;
 
-    @Mock
-    private LogGateway logGateway;
-
     @InjectMocks
     private RolReactiveRepositoryAdapter adapter;
 
@@ -53,6 +50,7 @@ class RolReactiveRepositoryAdapterTest {
     void findById_shouldReturnRol_whenFound() {
         // Arrange
         when(rolReactiveRepository.findById(anyInt())).thenReturn(Mono.just(rolEntity));
+        when(mapper.map(rolEntity, Rol.class)).thenReturn(rol);
 
         // Act & Assert
         StepVerifier.create(adapter.findById(1))
@@ -73,7 +71,9 @@ class RolReactiveRepositoryAdapterTest {
     @Test
     void save_shouldReturnSavedRol() {
         // Arrange
+        when(mapper.map(rol, RolEntity.class)).thenReturn(rolEntity);
         when(rolReactiveRepository.save(any(RolEntity.class))).thenReturn(Mono.just(rolEntity));
+        when(mapper.map(rolEntity, Rol.class)).thenReturn(rol);
 
         // Act & Assert
         StepVerifier.create(adapter.save(rol))

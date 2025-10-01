@@ -9,7 +9,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "rol")
+@Table(name = "auth_schema.rol")
 public class RolEntity {
 
     @Id

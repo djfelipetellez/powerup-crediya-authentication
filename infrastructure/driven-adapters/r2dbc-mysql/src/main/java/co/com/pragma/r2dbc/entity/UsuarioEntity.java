@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "usuario")
+@Table(name = "auth_schema.usuario")
 public class UsuarioEntity {
 
     @Id

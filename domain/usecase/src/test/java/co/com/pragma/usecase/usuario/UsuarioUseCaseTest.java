@@ -1,6 +1,5 @@
 package co.com.pragma.usecase.usuario;
 
-import co.com.pragma.model.auth.UsuarioCredencial;
 import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.Constantes;
 import co.com.pragma.model.common.gateways.LogGateway;
@@ -37,9 +36,6 @@ class UsuarioUseCaseTest {
     private UsuarioValidator usuarioValidator;
 
     @Mock
-    private UsuarioCredencialRepository userCredencialRepository;
-
-    @Mock
     private LogGateway loggingGateway;
 
     @InjectMocks
@@ -67,8 +63,7 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).info(any(), any());
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-        when(userCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(UsuarioCredencial.builder().build()));
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class))).thenReturn(Mono.just(usuario));
 
         // Act & Assert
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId, password))
@@ -103,7 +98,7 @@ class UsuarioUseCaseTest {
                 .thenReturn(Mono.error(new IllegalArgumentException("Invalid user data")));
         // Mock subsequent calls in the chain to prevent NullPointerException during stream assembly
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class))).thenReturn(Mono.empty());
 
 
         // Act
@@ -127,7 +122,7 @@ class UsuarioUseCaseTest {
         when(rolRepository.findById(anyInt()))
                 .thenReturn(Mono.empty());
         // Mock subsequent calls in the chain to prevent NullPointerException during stream assembly
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class))).thenReturn(Mono.empty());
 
         // Act
         Mono<Usuario> result = usuarioUseCase.registrarUsuario(usuario, roleId, password);
@@ -148,7 +143,7 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).error(any(), any(), any(Throwable.class));
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt()))
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class)))
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
         // Act
@@ -169,22 +164,14 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).info(any(), any());
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-
-        UsuarioCredencial expectedCredential = UsuarioCredencial.builder()
-                .email(usuario.getEmail())
-                .idUsuario(usuario.getIdUsuario())
-                .active(true)
-                .build();
-        when(userCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(expectedCredential));
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class))).thenReturn(Mono.just(usuario));
 
         // Act
         StepVerifier.create(usuarioUseCase.registrarUsuario(usuario, roleId, password))
                 .expectNextMatches(registeredUser -> registeredUser.getEmail().equals("test@pragma.com.co"))
                 .verifyComplete();
 
-        // Assert - Verify that credentials were saved
-        // This is implicit in the successful completion of the flow
+        // Assert - Verify that credentials were saved is implicit in registrarUsuarioCompleto
     }
 
     @Test
@@ -194,8 +181,8 @@ class UsuarioUseCaseTest {
         doNothing().when(loggingGateway).error(any(), any(), any(Throwable.class));
         when(usuarioValidator.validate(any(Usuario.class), anyInt())).thenReturn(Mono.empty());
         when(rolRepository.findById(anyInt())).thenReturn(Mono.just(Rol.builder().idRol(1).build()));
-        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt())).thenReturn(Mono.just(usuario));
-        when(userCredencialRepository.save(any(UsuarioCredencial.class)))
+        // Make registrarUsuarioCompleto fail to simulate credentials save failure
+        when(usuarioRepository.registrarUsuarioCompleto(any(Usuario.class), anyInt(), any(String.class)))
                 .thenReturn(Mono.error(new RuntimeException("Error saving credentials")));
 
         // Act

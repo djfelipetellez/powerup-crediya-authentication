@@ -41,6 +41,8 @@ public class RouterRest {
                         handler::login, OpenApiUtil::login)
                 .POST(authPath.getValidateToken(), accept(MediaType.APPLICATION_JSON),
                         handler::validateToken, OpenApiUtil::validateToken)
+                .POST(authPath.getRegisterInitial(), accept(MediaType.APPLICATION_JSON),
+                        handler::registrarUsuarioInicial, OpenApiUtil::registrarUsuario)
                 .build();
     }
 

@@ -26,7 +26,10 @@ public class JwtFilter implements WebFilter {
 
         // Permitir acceso sin token a rutas públicas
         if (isPublicPath(path)) {
-            logGateway.info("jwt-filter", "=== RUTA PÚBLICA DETECTADA - Permitiendo acceso sin token: " + path + " ===");
+            // Solo loguear para rutas que no sean actuator para reducir el ruido
+            if (!path.contains("/actuator")) {
+                logGateway.info("jwt-filter", "=== RUTA PÚBLICA DETECTADA - Permitiendo acceso sin token: " + path + " ===");
+            }
             return chain.filter(exchange);
         }
 

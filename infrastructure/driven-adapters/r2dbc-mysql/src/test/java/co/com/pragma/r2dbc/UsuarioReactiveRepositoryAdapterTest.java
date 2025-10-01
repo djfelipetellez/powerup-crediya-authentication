@@ -1,5 +1,7 @@
 package co.com.pragma.r2dbc;
 
+import co.com.pragma.model.auth.UsuarioCredencial;
+import co.com.pragma.model.auth.gateways.UsuarioCredencialRepository;
 import co.com.pragma.model.common.gateways.LogGateway;
 import co.com.pragma.model.rol.Rol;
 import co.com.pragma.model.rol.gateways.RolRepository;
@@ -29,6 +31,9 @@ class UsuarioReactiveRepositoryAdapterTest {
     private RolRepository rolRepository;
 
     @Mock
+    private UsuarioCredencialRepository usuarioCredencialRepository;
+
+    @Mock
     private ObjectMapper mapper;
 
     @Mock
@@ -42,7 +47,7 @@ class UsuarioReactiveRepositoryAdapterTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new UsuarioReactiveRepositoryAdapter(usuarioRepository, rolRepository, mapper, logGateway);
+        adapter = new UsuarioReactiveRepositoryAdapter(usuarioRepository, rolRepository, usuarioCredencialRepository, mapper, logGateway);
 
         rol = Rol.builder()
                 .idRol(1)
@@ -367,16 +372,18 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(savedEntity);
         when(rolRepository.findById(roleId)).thenReturn(Mono.just(userRol));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
+        when(usuarioRepository.findById(1)).thenReturn(Mono.just(savedEntity));
+        when(usuarioCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(UsuarioCredencial.builder().build()));
 
         // Act
-        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId, "testPassword");
 
         // Assert
         StepVerifier.create(result)
                 .expectNextMatches(registered -> registered.getEmail().equals(usuario.getEmail()))
                 .verifyComplete();
 
-        verify(rolRepository).findById(roleId);
+        verify(rolRepository, times(2)).findById(roleId);
         verify(usuarioRepository).save(any(UsuarioEntity.class));
     }
 
@@ -387,7 +394,7 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(rolRepository.findById(roleId)).thenReturn(Mono.empty());
 
         // Act
-        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId, "testPassword");
 
         // Assert
         StepVerifier.create(result)
@@ -415,7 +422,7 @@ class UsuarioReactiveRepositoryAdapterTest {
                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
         // Act
-        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId);
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuario, roleId, "testPassword");
 
         // Assert
         StepVerifier.create(result)
@@ -461,16 +468,18 @@ class UsuarioReactiveRepositoryAdapterTest {
         when(mapper.map(any(Usuario.class), eq(UsuarioEntity.class))).thenReturn(savedEntity);
         when(rolRepository.findById(roleId)).thenReturn(Mono.just(userRolAssign));
         when(usuarioRepository.save(any(UsuarioEntity.class))).thenReturn(Mono.just(savedEntity));
+        when(usuarioRepository.findById(1)).thenReturn(Mono.just(savedEntity));
+        when(usuarioCredencialRepository.save(any(UsuarioCredencial.class))).thenReturn(Mono.just(UsuarioCredencial.builder().build()));
 
         // Act
-        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuarioSinRolInicial, roleId);
+        Mono<Usuario> result = adapter.registrarUsuarioCompleto(usuarioSinRolInicial, roleId, "testPassword");
 
         // Assert
         StepVerifier.create(result)
                 .expectNextMatches(registered -> registered.getEmail().equals(usuarioSinRolInicial.getEmail()))
                 .verifyComplete();
 
-        verify(rolRepository).findById(roleId);
+        verify(rolRepository, times(2)).findById(roleId);
         verify(usuarioRepository).save(any(UsuarioEntity.class));
     }
 

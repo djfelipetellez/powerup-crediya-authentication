@@ -1,8 +1,9 @@
 server:
-  port: 8080
+  port: ${AUTH_SERVICE_PORT:8080}
   error:
     whitelabel:
       enabled: false
+
 spring:
   r2dbc:
     url: r2dbc:mysql://${DB_HOST:mysql-db}:${DB_PORT:3306}/${DB_NAME:crediya_db}?useSSL=${R2DBC_USE_SSL:false}&sslMode=${R2DBC_SSL_MODE:DISABLED}&allowPublicKeyRetrieval=${DB_ALLOW_PUBLIC_KEY_RETRIEVAL:true}&serverTimezone=UTC
@@ -13,9 +14,9 @@ spring:
       initial-size: 5
       max-size: 20
       max-idle-time: 30m
-    sql:
-      init:
-        mode: always
+  sql:
+    init:
+      mode: never  # En dev usamos scripts de inicialización de MySQL
   application:
     name: "powerup-crediya-authentication"
   devtools:
@@ -28,18 +29,20 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,prometheus"
+        include: "health,prometheus,info,metrics"
   endpoint:
     health:
       probes:
         enabled: true
+      show-details: always
+
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080"
+  allowed-origins: "${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8080,http://localhost:8081}"
 
 # JWT Configuration
 jwt:
-  secret: "mySecretKey12345678901234567890123456789012345678901234567890"
-  expiration: 86400000 # 24 horas en milisegundos
+  secret: ${JWT_SECRET:mySecretKey12345678901234567890123456789012345678901234567890}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 horas en milisegundos
 
 # API Paths Configuration
 api:
@@ -61,9 +64,22 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
   info:
-    title: "Crediya Authenticacion API"
-    description: "API para la gestion de usuarios y roles de crediya"
-    version: "1.0.0"
+    title: "Crediya Authenticacion API - DEV"
+    description: "API Reactiva para la gestion de usuarios y roles de crediya - Ambiente de Desarrollo"
+    version: "1.0.0-DEV"
     contact:
       name: "Felipe Tellez"
       email: "juanfelipetellezacosta@gmail.com"
+
+# Logging configuration for DEV environment (R2DBC)
+logging:
+  level:
+    com.crediya.autenticacion: DEBUG
+    org.springframework.r2dbc: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+    io.r2dbc.mysql: INFO
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"
+  file:
+    name: logs/crediya-auth-dev.log

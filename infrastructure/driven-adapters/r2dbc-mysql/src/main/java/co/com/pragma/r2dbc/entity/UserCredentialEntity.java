@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@Table("user_credentials")
+@Table("auth_schema.user_credentials")
 public class UserCredentialEntity {
 
     @Id

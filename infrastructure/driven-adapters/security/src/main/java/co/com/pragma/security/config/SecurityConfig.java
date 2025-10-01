@@ -127,6 +127,7 @@ public class SecurityConfig {
                 .authorizeExchange(exchangeSpec -> exchangeSpec
                         .pathMatchers("/api/v1/auth/login").permitAll()
                         .pathMatchers("/api/v1/auth/validate-token").permitAll()
+                        .pathMatchers("/api/v1/auth/register-initial").permitAll()
                         .pathMatchers("/api/v1/usuarios/validar-existencia/**").permitAll()
                         .pathMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .pathMatchers("/webjars/**").permitAll()

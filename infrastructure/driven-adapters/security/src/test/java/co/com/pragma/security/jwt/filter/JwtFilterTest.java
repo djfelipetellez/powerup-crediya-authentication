@@ -128,7 +128,8 @@ class JwtFilterTest {
                 .verifyComplete();
 
         verify(filterChain).filter(exchange);
-        verify(logGateway).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
+        // Actuator paths don't log info messages to reduce noise
+        verify(logGateway, never()).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
     }
 
     @Test
@@ -257,18 +258,22 @@ class JwtFilterTest {
     void filter_shouldHandleComplexPublicPaths() {
         when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
-        String[] publicPaths = {
+        String[] nonActuatorPublicPaths = {
                 "/api/auth/login",
                 "/nested/login/path",
                 "/api/validate-token",
                 "/swagger-ui.html",
                 "/swagger-ui/",
                 "/v3/api-docs.yaml",
-                "/webjars/bootstrap/css/bootstrap.min.css",
+                "/webjars/bootstrap/css/bootstrap.min.css"
+        };
+
+        String[] actuatorPaths = {
                 "/actuator/info"
         };
 
-        for (String path : publicPaths) {
+        // Test non-actuator paths
+        for (String path : nonActuatorPublicPaths) {
             MockServerHttpRequest request = MockServerHttpRequest.get(path).build();
             ServerWebExchange exchange = MockServerWebExchange.from(request);
 
@@ -278,7 +283,19 @@ class JwtFilterTest {
             verify(filterChain).filter(exchange);
         }
 
-        verify(logGateway, times(publicPaths.length)).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
+        // Test actuator paths
+        for (String path : actuatorPaths) {
+            MockServerHttpRequest request = MockServerHttpRequest.get(path).build();
+            ServerWebExchange exchange = MockServerWebExchange.from(request);
+
+            StepVerifier.create(jwtFilter.filter(exchange, filterChain))
+                    .verifyComplete();
+
+            verify(filterChain).filter(exchange);
+        }
+
+        // Only non-actuator paths should log info messages
+        verify(logGateway, times(nonActuatorPublicPaths.length)).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
     }
 
     @Test
@@ -347,16 +364,20 @@ class JwtFilterTest {
         when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
         // Use reflection to test the private method behavior through public interface
-        String[] publicPaths = {
+        String[] nonActuatorPublicPaths = {
                 "/login", "/api/login", "/auth/login",
                 "/validate-token", "/api/validate-token",
                 "/swagger-ui", "/swagger-ui/index.html",
                 "/v3/api-docs", "/v3/api-docs/swagger-config",
-                "/webjars", "/webjars/swagger-ui/bundle.js",
+                "/webjars", "/webjars/swagger-ui/bundle.js"
+        };
+
+        String[] actuatorPaths = {
                 "/actuator", "/actuator/health"
         };
 
-        for (String path : publicPaths) {
+        // Test non-actuator paths (these should log info messages)
+        for (String path : nonActuatorPublicPaths) {
             MockServerHttpRequest request = MockServerHttpRequest.get(path).build();
             ServerWebExchange exchange = MockServerWebExchange.from(request);
 
@@ -364,6 +385,18 @@ class JwtFilterTest {
                     .verifyComplete();
         }
 
-        verify(logGateway, times(publicPaths.length)).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
+        // Test actuator paths (these should NOT log info messages)
+        for (String path : actuatorPaths) {
+            MockServerHttpRequest request = MockServerHttpRequest.get(path).build();
+            ServerWebExchange exchange = MockServerWebExchange.from(request);
+
+            StepVerifier.create(jwtFilter.filter(exchange, filterChain))
+                    .verifyComplete();
+        }
+
+        // Verify filter chain was called for all paths
+        verify(filterChain, times(nonActuatorPublicPaths.length + actuatorPaths.length)).filter(any());
+        // Verify info logging only for non-actuator paths
+        verify(logGateway, times(nonActuatorPublicPaths.length)).info(eq("jwt-filter"), contains("RUTA PÚBLICA DETECTADA"));
     }
 }

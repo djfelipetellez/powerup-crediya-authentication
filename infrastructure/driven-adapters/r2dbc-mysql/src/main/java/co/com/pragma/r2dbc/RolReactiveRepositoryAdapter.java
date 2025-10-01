@@ -32,32 +32,20 @@ public class RolReactiveRepositoryAdapter extends ReactiveAdapterOperations<
                         logGateway.debug("RolRepositoryAdapter", "Rol encontrado: " + (entity != null ? entity.getNombre() : "null")))
                 .doOnError(error ->
                         logGateway.error("RolRepositoryAdapter", "Error buscando rol por ID: " + error.getMessage(), error))
-                .map(entity -> Rol.builder()
-                        .idRol(entity.getIdRol())
-                        .nombre(entity.getNombre())
-                        .descripcion(entity.getDescripcion())
-                        .build()
-                );
+                .map(this::toEntity);
     }
 
     @Override
     public Mono<Rol> save(Rol rol) {
         logGateway.debug("RolRepositoryAdapter", "Guardando rol: " + rol.getNombre());
 
-        RolEntity rolEntity = new RolEntity();
-        rolEntity.setNombre(rol.getNombre());
-        rolEntity.setDescripcion(rol.getDescripcion());
-
-        return repository.save(rolEntity)
-                .doOnSuccess(savedEntity ->
-                        logGateway.debug("RolRepositoryAdapter", "Rol guardado exitosamente: " + savedEntity.getNombre()))
+        return Mono.just(rol)
+                .map(r -> mapper.map(r, RolEntity.class))
+                .flatMap(repository::save)
+                .map(this::toEntity)
+                .doOnSuccess(savedRol ->
+                        logGateway.debug("RolRepositoryAdapter", "Rol guardado exitosamente: " + savedRol.getNombre()))
                 .doOnError(error ->
-                        logGateway.error("RolRepositoryAdapter", "Error guardando rol: " + error.getMessage(), error))
-                .map(savedEntity -> Rol.builder()
-                        .idRol(savedEntity.getIdRol())
-                        .nombre(savedEntity.getNombre())
-                        .descripcion(savedEntity.getDescripcion())
-                        .build()
-                );
+                        logGateway.error("RolRepositoryAdapter", "Error guardando rol: " + error.getMessage(), error));
     }
 }

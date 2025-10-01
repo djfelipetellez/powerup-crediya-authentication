@@ -75,6 +75,7 @@ class RouterRestTest {
         AuthPath authPath = new AuthPath();
         authPath.setLogin("/api/v1/auth/login");
         authPath.setValidateToken("/api/v1/auth/validate-token");
+        authPath.setRegisterInitial("/api/v1/auth/register-initial");
 
         RouterRest routerRest = new RouterRest(usuarioPath, rolPath, authPath);
 
@@ -175,6 +176,8 @@ class RouterRestTest {
                 .willReturn(Mono.error(new UsuarioNotFoundException("Usuario no encontrado")));
 
         // Act & Assert
+        // Note: In this test setup, no GlobalExceptionHandler is configured,
+        // so uncaught exceptions result in 500 INTERNAL_SERVER_ERROR instead of mapped status codes
         webTestClient.get()
                 .uri("/api/v1/usuarios/validar-existencia/{email}", email)
                 .accept(MediaType.APPLICATION_JSON)

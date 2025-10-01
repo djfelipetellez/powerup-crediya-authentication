@@ -11,5 +11,5 @@ public interface UsuarioRepository {
 
     Mono<Usuario> findByEmail(String email);
 
-    Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId);
+    Mono<Usuario> registrarUsuarioCompleto(Usuario usuario, Integer roleId, String password);
 }
